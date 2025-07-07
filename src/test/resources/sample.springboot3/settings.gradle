@@ -1,9 +1,14 @@
 pluginManagement {
     repositories {
-        mavenCentral()
         mavenLocal()
+        mavenCentral()
         maven {
-            url = uri(file("$rootDir/../../plugin-test-repository/"))
+            name = "Sonatype Nexus Snapshots"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        // IBM public Maven repository
+        maven {
+            url = "https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/maven/"
         }
     }
 }

@@ -59,7 +59,6 @@ abstract class AbstractLibertyTask extends DefaultTask {
         return (project.liberty.userDir == null) ? new File(installDir, 'usr') : new File(project.liberty.userDir)
     }
 
-    @Internal
     protected boolean isUserDirSpecified() {
         return (project.liberty.userDir != null)
     }
@@ -148,7 +147,6 @@ abstract class AbstractLibertyTask extends DefaultTask {
         }
         return task
     }
-    @Internal
     protected boolean isLibertyInstalledAndValid(Project project) {
         File installDir = getInstallDir(project)
         boolean installationExists = installDir.exists() && new File(installDir,"lib/ws-launch.jar").exists()
@@ -161,12 +159,10 @@ abstract class AbstractLibertyTask extends DefaultTask {
     private final String  COM_IBM_WEBSPHERE_PRODUCTID_KEY = "com.ibm.websphere.productId"
     private final String COM_IBM_WEBSPHERE_PRODUCTVERSION_KEY = "com.ibm.websphere.productVersion"
 
-    @Internal
     protected boolean isClosedLiberty() {
         getLibertyInstallProperties().getProperty(COM_IBM_WEBSPHERE_PRODUCTID_KEY).contains("com.ibm.websphere.appserver")
     }
 
-    @Internal
     protected Properties getLibertyInstallProperties() {
         File propertiesDir = new File(getInstallDir(project), "lib/versions")
         File wlpProductInfoProperties = new File(propertiesDir, "WebSphereApplicationServer.properties")

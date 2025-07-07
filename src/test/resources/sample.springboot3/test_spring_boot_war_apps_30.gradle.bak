@@ -1,14 +1,19 @@
 buildscript {
 	ext {
-		springBootVersion = '3.4.0'
+		springBootVersion = '3.1.0'
 	}
-	repositories {
-	    mavenLocal()
-		mavenCentral()
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
+repositories {
+	mavenLocal()
+	mavenCentral()
+	maven {
+		name = 'Sonatype Nexus Snapshots'
+		url = 'https://oss.sonatype.org/content/repositories/snapshots/'
 	}
+	// IBM public Maven repository
+	maven {
+		url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/maven/'
+	}
+}	}
 	dependencies {
 		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "io.openliberty.tools:liberty-gradle-plugin:$lgpVersion"
@@ -26,12 +31,22 @@ java {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven {
+		name = 'Sonatype Nexus Snapshots'
+		url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+	}
+	// IBM public Maven repository
+	maven {
+		url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/maven/'
+	}
 }
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
-	libertyRuntime group: 'io.openliberty', name: 'openliberty-kernel', version: '23.0.0.10'
+	libertyRuntime group: 'io.openliberty', name: 'openliberty-kernel', version: '25.0.0.2'
 }
 
 liberty {

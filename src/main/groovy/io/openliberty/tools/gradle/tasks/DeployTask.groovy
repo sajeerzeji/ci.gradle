@@ -259,7 +259,7 @@ class DeployTask extends AbstractServerTask {
         }
     }
 
-    private void installLooseApplication(Task task, String appsDir) throws Exception {
+    void installLooseApplication(Task task, String appsDir) throws Exception {
         String looseConfigFileName = getLooseConfigFileName(task)
         String application = looseConfigFileName.substring(0, looseConfigFileName.length()-4)
         File destDir = new File(getServerDir(project), appsDir)
@@ -613,7 +613,6 @@ class DeployTask extends AbstractServerTask {
         return projectPath
     }
 
-    @Internal
     boolean isSupportedType(){
         switch (getPackagingType()) {
             case "ear":

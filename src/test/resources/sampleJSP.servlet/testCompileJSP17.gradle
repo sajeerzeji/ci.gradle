@@ -2,24 +2,12 @@
 	This test checks whether the compileJsp task was able to compile the index.jsp file from the test
   project
 */
-group = 'liberty.gradle'
-
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven {
-            name = 'Sonatype Nexus Snapshots'
-            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
-    }
-    dependencies {
-        classpath "io.openliberty.tools:liberty-gradle-plugin:$lgpVersion"
-    }
+plugins {
+    id 'war'
+    id 'io.openliberty.tools.gradle.Liberty' version "$lgpVersion"
 }
 
-apply plugin: 'war'
-apply plugin: 'liberty'
+group = 'liberty.gradle'
 
 compileJava.options.release = 17
 
@@ -53,7 +41,16 @@ liberty {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven {
+        name = 'Sonatype Nexus Snapshots'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+    // IBM public Maven repository
+    maven {
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/maven/'
+    }
 }
 
 dependencies {

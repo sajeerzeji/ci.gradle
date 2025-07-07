@@ -12,12 +12,22 @@ java {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven {
+		name = 'Sonatype Nexus Snapshots'
+		url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+	}
+	// IBM public Maven repository
+	maven {
+		url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/maven/'
+	}
 }
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
-	libertyRuntime group: 'io.openliberty', name: 'openliberty-runtime', version: '23.0.0.10'
+	libertyRuntime group: 'io.openliberty', name: 'openliberty-runtime', version: '25.0.5'
 }
 
 liberty {

@@ -100,7 +100,6 @@ public class AbstractPrepareTask extends AbstractServerTask {
 	
     }
 	
-	@Internal
 	protected List<String> getDependencyBoms() {
 		List<String> result = new ArrayList<String>()
 		project.configurations.featuresBom.dependencies.each { dep ->

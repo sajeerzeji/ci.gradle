@@ -1,22 +1,23 @@
 buildscript {
-	ext {
-		springBootVersion = '3.4.0'
-	}
-	repositories {
-	    mavenLocal()
-		mavenCentral()
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
-	}
-	dependencies {
-		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-        classpath "io.openliberty.tools:liberty-gradle-plugin:$lgpVersion"
-	}
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            name = 'Sonatype Nexus Snapshots'
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
+    dependencies {
+        classpath "io.openliberty.tools:liberty-gradle-plugin:${lgpVersion}"
+    }
 }
 
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.0'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
 apply plugin: 'liberty'
 
 group = 'liberty.gradle'
@@ -26,19 +27,38 @@ java {
 }
 
 repositories {
-	mavenCentral()
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = 'Sonatype Nexus Snapshots'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+    // IBM public Maven repository
+    maven {
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/maven/'
+    }
 }
+
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
-	testImplementation('org.springframework.boot:spring-boot-starter-test')
-	libertyRuntime group: 'io.openliberty', name: 'openliberty-runtime', version: '25.0.0.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.2.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    libertyRuntime 'io.openliberty:openliberty-runtime:23.0.0.10'
 }
 
 liberty {
-	server {
-		serverXmlFile = file("src/main/liberty/config/server30.xml")
-		deploy {
-			apps = [bootJar]
-		}
-	}
+    server {
+        serverXmlFile = file("src/main/liberty/config/server30.xml")
+        deploy {
+            apps = [jar]
+        }
+    }
+}
+
+// Workaround for Spring Boot Gradle plugin compatibility with Gradle 9.0
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
 }

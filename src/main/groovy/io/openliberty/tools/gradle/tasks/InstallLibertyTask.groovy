@@ -368,7 +368,6 @@ class InstallLibertyTask extends AbstractLibertyTask {
         }
     }
 
-    @Internal
     protected String getLibertyRuntimeCoordinates() {
         String runtimeCoords = null
         Configuration config = project.configurations.getByName('libertyRuntime')
@@ -438,7 +437,6 @@ class InstallLibertyTask extends AbstractLibertyTask {
         return updatedCoords
     }
 
-    @Internal
     protected String getDefaultLibertyRuntimeCoordinates() {
 
         // check for overrides in liberty.runtime properties

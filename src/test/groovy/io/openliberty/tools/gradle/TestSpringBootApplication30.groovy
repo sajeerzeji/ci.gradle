@@ -16,8 +16,12 @@
 package io.openliberty.tools.gradle
 
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import org.junit.*
 import org.junit.rules.TestName
+
+import java.util.ArrayList
+import java.util.List
 
 import static org.junit.Assert.assertTrue
 

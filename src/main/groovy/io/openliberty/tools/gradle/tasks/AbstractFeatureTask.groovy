@@ -44,7 +44,6 @@ public class AbstractFeatureTask extends AbstractServerTask {
     private ServerFeatureUtil servUtil;
 	
 	
-	@Internal
  	String jsonCoordinate;
 
     @Option(option = 'serverDir', description = '(Optional) Server directory to get the list of features from.')
@@ -196,7 +195,6 @@ public class AbstractFeatureTask extends AbstractServerTask {
         return result
     }
 
-    @Internal
     protected Set<String> getDependencyFeatures() {
         Set<String> features = new HashSet<String>()
         project.configurations.libertyFeature.dependencies.each { dep ->
@@ -206,7 +204,6 @@ public class AbstractFeatureTask extends AbstractServerTask {
         return features
     }
 
-    @Internal
     protected List<String> getAdditionalJsonList() {
         List<String> result = new ArrayList<String>()
         project.configurations.featuresBom.dependencies.each { dep ->
@@ -279,7 +276,6 @@ public class AbstractFeatureTask extends AbstractServerTask {
      * @param suppressLogs if true info and warning will be logged as debug
      * @return instance of ServerFeatureUtil
      */
-    @Internal
     protected ServerFeatureUtil getServerFeatureUtil(boolean suppressLogs, Map<String, File> libDirPropFiles) {
         if (servUtil == null) {
             servUtil = new ServerFeatureTaskUtil();

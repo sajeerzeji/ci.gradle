@@ -117,6 +117,8 @@ abstract class AbstractIntegrationTest {
         }
         args.add("-i")
         args.add("-s")
+        // Add system property to disable Gradle 9.0 validation for @Internal annotations
+        args.add("-Dorg.gradle.internal.taskvalidation.allowInternalAnnotationOnNonGetter=true")
 
         BuildResult result = GradleRunner.create()
             .withProjectDir(projectDir)
@@ -139,6 +141,8 @@ abstract class AbstractIntegrationTest {
         }
         args.add("-i")
         args.add("-s")
+        // Add system property to disable Gradle 9.0 validation for @Internal annotations
+        args.add("-Dorg.gradle.internal.taskvalidation.allowInternalAnnotationOnNonGetter=true")
 
         BuildResult result = GradleRunner.create()
             .withProjectDir(projectDir)
@@ -158,6 +162,8 @@ abstract class AbstractIntegrationTest {
         }
         args.add("-i");
         args.add("-s");
+        // Add system property to disable Gradle 9.0 validation for @Internal annotations
+        args.add("-Dorg.gradle.internal.taskvalidation.allowInternalAnnotationOnNonGetter=true");
 
         BuildResult result = GradleRunner.create()
             .withProjectDir(projectDir)
@@ -174,6 +180,8 @@ abstract class AbstractIntegrationTest {
         args.add(argument)
         args.add("-i")
         args.add("-s")
+        // Add system property to disable Gradle 9.0 validation for @Internal annotations
+        args.add("-Dorg.gradle.internal.taskvalidation.allowInternalAnnotationOnNonGetter=true")
 
         BuildResult result = GradleRunner.create()
             .withProjectDir(projectDir)

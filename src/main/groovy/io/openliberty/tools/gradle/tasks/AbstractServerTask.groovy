@@ -1059,7 +1059,6 @@ abstract class AbstractServerTask extends AbstractLibertyTask {
         }
     }
 
-    @Internal
     protected String getPackagingType() throws Exception{
       if (project.plugins.hasPlugin("war") || !project.tasks.withType(War).isEmpty()) {
           if (project.plugins.hasPlugin("org.springframework.boot")) {
@@ -1088,7 +1087,6 @@ abstract class AbstractServerTask extends AbstractLibertyTask {
       return false
     }
 
-    @Internal
     protected List<File> getApplicationFilesFromConfiguration() {
         List<File> appFiles = new ArrayList<File>()
 
