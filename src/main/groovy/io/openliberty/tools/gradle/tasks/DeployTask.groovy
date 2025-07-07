@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.Internal
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -115,7 +116,7 @@ class DeployTask extends AbstractServerTask {
         }
     }
 
-    private void installMultipleApps(List<Task> applications, String appsDir) {
+    void installMultipleApps(List<Task> applications, String appsDir) {
         applications.each{ Task task ->
             installProject(task, appsDir)
         }
@@ -612,7 +613,8 @@ class DeployTask extends AbstractServerTask {
         return projectPath
     }
 
-    private boolean isSupportedType(){
+    @Internal
+    boolean isSupportedType(){
         switch (getPackagingType()) {
             case "ear":
             case "war":

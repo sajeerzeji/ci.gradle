@@ -31,15 +31,14 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
-	libertyRuntime group: 'com.ibm.websphere.appserver.runtime', name: 'wlp-jakartaee10', version: '25.0.0.2'
-}
-
-bootJar {
-	archiveClassifier = 'test'
+	libertyRuntime group: 'io.openliberty', name: 'openliberty-runtime', version: '23.0.0.10'
 }
 
 liberty {
 	server {
 		serverXmlFile = file("src/main/liberty/config/server30.xml")
+		deploy {
+			apps = [bootJar]
+		}
 	}
 }
