@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="custom included server">
+    <springBootApplication id="guide-spring-boot-2"
+                           location="test_spring_boot_with_springbootapplication_nodes_apps_include_30-1.0-SNAPSHOT.jar"
+                           name="guide-spring-boot-2" />
+</server>

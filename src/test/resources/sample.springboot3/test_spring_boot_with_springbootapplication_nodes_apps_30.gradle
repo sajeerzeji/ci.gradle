@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '3.4.0'
+		springBootVersion = '3.0.0'
 	}
 	repositories {
 	    mavenLocal()
@@ -11,18 +11,30 @@ buildscript {
 	}
 	dependencies {
 		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "io.spring.gradle:dependency-management-plugin:1.1.4"
         classpath "io.openliberty.tools:liberty-gradle-plugin:$lgpVersion"
 	}
 }
 
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'liberty'
 
 group = 'liberty.gradle'
 version = '1.0-SNAPSHOT'
 java {
     sourceCompatibility = JavaVersion.VERSION_17
+}
+
+bootJar {
+    mainClass = 'hello.Application'
+    archiveClassifier = ''
+    enabled = true
+}
+
+jar {
+    enabled = false
 }
 
 repositories {

@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.2.0'
-	id 'io.spring.dependency-management' version '1.1.6'
+	id 'org.springframework.boot' version '3.0.0'
+	id 'io.spring.dependency-management' version '1.1.4'
 	id 'io.openliberty.tools.gradle.Liberty' version "$lgpVersion"
 }
 
@@ -9,6 +9,16 @@ group = 'liberty.gradle'
 version = '1.0-SNAPSHOT'
 java {
     sourceCompatibility = JavaVersion.VERSION_17
+}
+
+bootJar {
+    mainClass = 'hello.Application'
+    archiveClassifier = ''
+    enabled = true
+}
+
+jar {
+    enabled = false
 }
 
 repositories {

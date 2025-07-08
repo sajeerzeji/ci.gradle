@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '3.4.0'
+		springBootVersion = '3.0.0'
 	}
 	repositories {
 	    mavenLocal()
@@ -11,12 +11,14 @@ buildscript {
 	}
 	dependencies {
 		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "io.spring.gradle:dependency-management-plugin:1.1.4"
         classpath "io.openliberty.tools:liberty-gradle-plugin:$lgpVersion"
 	}
 }
 
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'liberty'
 
 group = 'liberty.gradle'
@@ -25,9 +27,21 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
 }
 
+bootJar {
+    mainClass = 'com.example.springboot.SpringBootThinApplication'
+    archiveClassifier = ''
+    enabled = true
+    archiveBaseName = 'test_spring_boot_with_springbootapplication_nodes_apps_include_30'
+}
+
+jar {
+    enabled = false
+}
+
 repositories {
 	mavenCentral()
 }
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -37,5 +51,10 @@ dependencies {
 liberty {
 	server {
 		serverXmlFile = file("src/main/liberty/alternateConfig/server_springboot.xml")
+		name = "test_spring_boot_with_springbootapplication_nodes_apps_include_30Server"
+		
+		deploy {
+			apps = [bootJar]
+		}
 	}
 }
