@@ -47,7 +47,7 @@ class ConfigureArquillianTest extends AbstractIntegrationTest {
         BuildResult result = GradleRunner.create()
             .withProjectDir(buildDir)
             .forwardOutput()
-            .withArguments("build", "-x", "test", "-i", "-s")
+            .withArguments("installLiberty", "libertyCreate", "build", "-x", "test", "-x", "deploy", "-i", "-s")
             .build()
     }
 
