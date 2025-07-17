@@ -31,7 +31,7 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import org.gradle.api.GradleException
 import io.openliberty.tools.common.plugins.util.OSUtil
 
-abstract class AbstractIntegrationTest {
+public abstract class AbstractIntegrationTest {
 
     static File integTestDir = new File('build/testBuilds')
 

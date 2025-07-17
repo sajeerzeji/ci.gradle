@@ -1,8 +1,12 @@
 apply plugin: "liberty"
 apply plugin: "war"
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
@@ -25,8 +29,8 @@ repositories {
 }
 
 dependencies {
-    providedCompile 'jakarta.platform:jakarta.jakartaee-api:9.1.0'
-    providedCompile 'org.eclipse.microprofile:microprofile:5.0'
+    compileOnly 'jakarta.platform:jakarta.jakartaee-api:9.1.0'
+    compileOnly 'org.eclipse.microprofile:microprofile:5.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
     testImplementation 'org.jboss.resteasy:resteasy-client:6.0.0.Final'

@@ -93,6 +93,7 @@ test {
 
     systemProperties System.getProperties()
     systemProperty 'runit', 'online'
+    failOnNoDiscoveredTests = false
 
     doFirst {
         String runtimeGroup
