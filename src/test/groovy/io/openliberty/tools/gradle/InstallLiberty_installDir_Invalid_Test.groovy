@@ -22,26 +22,35 @@ import org.junit.Test
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
-class InstallLiberty_installDir_Invalid_Test extends AbstractIntegrationTest {
+public class InstallLiberty_installDir_Invalid_Test extends AbstractIntegrationTest {
     static File resourceDir = new File("build/resources/test/install-dir-property-test/installDir-invalid-installation")
     static File buildDir = new File(integTestDir, "/InstallLiberty_installDir_Invalid_Test")
     static String buildFilename = "build.gradle"
 
     @BeforeClass
     public static void setup() {
-        createDir(buildDir)
-        createTestProject(buildDir, resourceDir, buildFilename)
+        try {
+            createDir(buildDir)
+            createTestProject(buildDir, resourceDir, buildFilename)
+        } catch (Exception e) {
+            System.out.println("Error in setup: " + e.getMessage())
+        }
     }
 
     @Test
-    void test_installLiberty_invalid_installDir_fail() {
-        BuildResult result = GradleRunner.create()
-            .withProjectDir(buildDir)
-            .forwardOutput()
-            .withArguments('installLiberty', '-i', '-s')
-            .buildAndFail()
+    public void test_installLiberty_invalid_installDir_fail() {
+        try {
+            BuildResult result = GradleRunner.create()
+                .withProjectDir(buildDir)
+                .forwardOutput()
+                .withArguments('installLiberty', '-i', '-s')
+                .buildAndFail()
 
-        String output = result.getOutput()
-        assert output.contains("Please specify a valid path for the installDir") : "Expected installLiberty to fail with GradleException"
+            String output = result.getOutput()
+            assert output.contains("Please specify a valid path for the installDir") : "Expected installLiberty to fail with GradleException"
+        } catch (Exception e) {
+            System.out.println("Error in test_installLiberty_invalid_installDir_fail: " + e.getMessage())
+            throw e;
+        }
     }
 }

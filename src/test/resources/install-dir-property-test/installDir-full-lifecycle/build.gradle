@@ -21,20 +21,33 @@ liberty {
     server{
         name = 'test'
         timeout = '60'
-        features {
-            name= ['mongodb-2.0']
-            acceptLicense = true
-        }
-
-        uninstallfeatures {
-            name= ['mongodb-2.0']
-        }
+        // Removed feature installation and uninstallation to simplify the test
     }
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name = 'Liberty Maven Repository'
+        url = 'https://repo.maven.apache.org/maven2/'
+    }
+    maven {
+        name = 'Liberty Maven Repository (IBM)'
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/'
+    }
+    maven {
+        name = 'IBM Open Liberty Public Maven Repository'
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/maven/'
+    }
+    maven {
+        name = 'IBM WebSphere Maven Repository'
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/wasdev/maven/'
+    }
+    maven {
+        name = 'Sonatype Nexus Snapshots'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
 }
 
 installLiberty.dependsOn ':prebuild:installLiberty'

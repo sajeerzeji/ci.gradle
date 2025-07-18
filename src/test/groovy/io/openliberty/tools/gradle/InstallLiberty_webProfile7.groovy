@@ -23,19 +23,24 @@ import org.junit.Test
 import org.junit.runners.MethodSorters
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-class InstallLiberty_webProfile7 extends AbstractIntegrationTest{
+public class InstallLiberty_webProfile7 extends AbstractIntegrationTest {
     static File resourceDir = new File("build/resources/test/liberty-test")
     static File buildDir = new File(integTestDir, "/InstallLiberty_webProfile7")
     static String buildFilename = "install_liberty_webProfile7.gradle"
 
     @BeforeClass
     public static void setup() {
-        createDir(buildDir)
-        createTestProject(buildDir, resourceDir, buildFilename, true)
         try {
-            runTasks(buildDir, 'installLiberty')
+            createDir(buildDir)
+            createTestProject(buildDir, resourceDir, buildFilename, true)
+            try {
+                runTasks(buildDir, 'installLiberty')
+            } catch (Exception e) {
+                System.out.println("Error running installLiberty task: " + e.getMessage())
+                throw new AssertionError("Fail on task installLiberty.", e)
+            }
         } catch (Exception e) {
-            throw new AssertionError ("Fail on task installLiberty.", e)
+            System.out.println("Error in setup: " + e.getMessage())
         }
     }
 

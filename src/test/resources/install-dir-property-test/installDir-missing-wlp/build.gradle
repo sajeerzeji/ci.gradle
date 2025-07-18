@@ -6,6 +6,10 @@ buildscript {
             name = 'Sonatype Nexus Snapshots'
             url = 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
+        maven {
+            name = 'IBM Open Liberty Public Maven Repository'
+            url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/wasliberty-open-liberty/'
+        }
     }
 
     dependencies {
@@ -24,3 +28,16 @@ liberty {
 }
 
 installLiberty.dependsOn ':installDir-valid-install:installLiberty'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        name = 'Sonatype Nexus Snapshots'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+    maven {
+        name = 'IBM Open Liberty Public Maven Repository'
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/wasliberty-open-liberty/'
+    }
+}

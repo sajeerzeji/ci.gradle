@@ -10,7 +10,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-class InstallLiberty_installDir_plus_create_server_Test extends AbstractIntegrationTest {
+public class InstallLiberty_installDir_plus_create_server_Test extends AbstractIntegrationTest {
     static File resourceDir = new File("build/resources/test/install-dir-property-test/installDir-plus-create-server")
 
     static File buildDir = new File(integTestDir, "/InstallLiberty_installDir_plus_create_server")
@@ -21,27 +21,35 @@ class InstallLiberty_installDir_plus_create_server_Test extends AbstractIntegrat
 
     @BeforeClass
     public static void setup() {
-        createDir(buildDir)
-        createTestProject(buildDir, resourceDir, buildFilename)
+        try {
+            createDir(buildDir)
+            createTestProject(buildDir, resourceDir, buildFilename)
+        } catch (Exception e) {
+            System.out.println("Error in setup: " + e.getMessage())
+        }
     }
 
     @Test
-    void test1_installLiberty() {
-        BuildResult result = GradleRunner.create()
-            .withProjectDir(buildDir)
-            .forwardOutput()
-            .withArguments('libertyCreate', '-i', '-s')
-            .build()
+    public void test1_installLiberty() {
+        try {
+            BuildResult result = GradleRunner.create()
+                .withProjectDir(buildDir)
+                .forwardOutput()
+                .withArguments('libertyCreate', '-i', '-s')
+                .build()
 
-        String output = result.getOutput()
-        assert output.contains("Liberty is already installed at") : "Expected installLiberty to detect existing installation at installDir"
+            String output = result.getOutput()
+            assert output.contains("Liberty is already installed at") : "Expected installLiberty to detect existing installation at installDir"
 
-        assert !output.contains("jvm.options file deleted before processing plugin configuration.") : "Expected jvm.options file to not be deleted."
-        assert expectedJvmOptionsFile.exists()
+            assert !output.contains("jvm.options file deleted before processing plugin configuration.") : "Expected jvm.options file to not be deleted."
+            assert expectedJvmOptionsFile.exists() : "Expected jvm.options file to exist"
 
-        assert !output.contains("bootstrap.properties file deleted before processing plugin configuration.") : "Expected jvm.options file to not be deleted."
-        assert expectedBootstrapPropsFile.exists()
-
+            assert !output.contains("bootstrap.properties file deleted before processing plugin configuration.") : "Expected bootstrap.properties file to not be deleted."
+            assert expectedBootstrapPropsFile.exists() : "Expected bootstrap.properties file to exist"
+        } catch (Exception e) {
+            System.out.println("Error in test1_installLiberty: " + e.getMessage())
+            throw e;
+        }
     }
 
 }

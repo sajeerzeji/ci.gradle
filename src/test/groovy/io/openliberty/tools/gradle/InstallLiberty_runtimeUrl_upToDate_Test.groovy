@@ -23,25 +23,42 @@ import org.junit.Test
 import org.junit.runners.MethodSorters
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-class InstallLiberty_runtimeUrl_upToDate_Test extends AbstractIntegrationTest{
+public class InstallLiberty_runtimeUrl_upToDate_Test extends AbstractIntegrationTest {
     static File resourceDir = new File("build/resources/test/liberty-test")
     static File buildDir = new File(integTestDir, "/InstallLiberty_upToDate_Test")
     static String runTimeDep_UpToDate_buildFilename = "installLiberty_upToDate_runtimeUrl_Test.gradle"
 
     @BeforeClass
     public static void setup() {
-        createDir(buildDir)
-        createTestProject(buildDir, resourceDir, runTimeDep_UpToDate_buildFilename, true)
         try {
-            runTasks(buildDir, 'installLiberty')
+            createDir(buildDir)
+            createTestProject(buildDir, resourceDir, runTimeDep_UpToDate_buildFilename, true)
+            try {
+                runTasks(buildDir, 'installLiberty')
+            } catch (Exception e) {
+                System.out.println("Error running installLiberty task: " + e.getMessage())
+                e.printStackTrace()
+                throw new AssertionError("Fail on task installLiberty.", e)
+            }
         } catch (Exception e) {
-            throw new AssertionError ("Fail on task installLiberty.", e)
+            System.out.println("Error in setup: " + e.getMessage())
+            e.printStackTrace()
+            throw e
         }
     }
 
     @Test
     public void test_installLiberty_upToDate() {
-        assert runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyRuntimeUrl=https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/2021-01-13_1459/openliberty-javaee8-21.0.0.1.zip")
-        assertFalse runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyRuntimeUrl=https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/2021-02-09_1100/openliberty-javaee8-21.0.0.2.zip")
+        try {
+            boolean upToDateSameUrl = runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyRuntimeUrl=https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/2021-01-13_1459/openliberty-javaee8-21.0.0.1.zip")
+            assertTrue("Expected task to be up-to-date with same URL", upToDateSameUrl)
+            
+            boolean upToDateDifferentUrl = runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyRuntimeUrl=https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/2021-02-09_1100/openliberty-javaee8-21.0.0.2.zip")
+            assertFalse("Expected task to not be up-to-date with different URL", upToDateDifferentUrl)
+        } catch (Exception e) {
+            System.out.println("Error in test_installLiberty_upToDate: " + e.getMessage())
+            e.printStackTrace()
+            throw e;
+        }
     }
 }

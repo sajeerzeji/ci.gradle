@@ -16,11 +16,32 @@ buildscript {
 apply plugin: 'liberty'
 
 repositories {
-    addAll rootProject.buildscript.repositories
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = 'Liberty Maven Repository'
+        url = 'https://repo.maven.apache.org/maven2/'
+    }
+    maven {
+        name = 'Liberty Maven Repository (IBM)'
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/'
+    }
+    maven {
+        name = 'IBM Open Liberty Public Maven Repository'
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/maven/'
+    }
+    maven {
+        name = 'IBM WebSphere Maven Repository'
+        url = 'https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/wasdev/maven/'
+    }
+    maven {
+        name = 'Sonatype Nexus Snapshots'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
 }
 
 dependencies {
-    libertyRuntime group: 'com.ibm.websphere.appserver.runtime', name: 'wlp-javaee7', version: runtimeVersion
+    libertyRuntime group: 'io.openliberty', name: 'openliberty-runtime', version: runtimeVersion
 }
 
 defaultTasks 'installLiberty'

@@ -23,7 +23,7 @@ import org.junit.Test
 import org.junit.runners.MethodSorters
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-class InstallLiberty_runtimeDep_upToDate_Test extends AbstractIntegrationTest{
+public class InstallLiberty_runtimeDep_upToDate_Test extends AbstractIntegrationTest {
     static File resourceDir = new File("build/resources/test/liberty-test")
     static File buildDir = new File(integTestDir, "/InstallLiberty_upToDate_Test")
     static String runTimeDep_UpToDate_buildFilename = "installLiberty_upToDate_runtimeDep_Test.gradle"
@@ -31,29 +31,48 @@ class InstallLiberty_runtimeDep_upToDate_Test extends AbstractIntegrationTest{
 
     @BeforeClass
     public static void setup() {
-        createDir(buildDir)
-        createTestProject(buildDir, resourceDir, runTimeDep_UpToDate_buildFilename, true)
         try {
-            runTasks(buildDir, 'installLiberty')
+            createDir(buildDir)
+            createTestProject(buildDir, resourceDir, runTimeDep_UpToDate_buildFilename, true)
+            try {
+                runTasks(buildDir, 'installLiberty')
+            } catch (Exception e) {
+                System.out.println("Error running installLiberty task: " + e.getMessage())
+                e.printStackTrace()
+                throw new AssertionError("Fail on task installLiberty ", e)
+            }
         } catch (Exception e) {
-            throw new AssertionError ("Fail on task installLiberty ", e)
+            System.out.println("Error in setup: " + e.getMessage())
+            e.printStackTrace()
+            throw e
         }
     }
 
     @Test
     public void test_installLiberty_upToDate() {
-        // same version as installed in the setup method, so upToDate check should return true
-        assert runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.1")
+        try {
+            // same version as installed in the setup method, so upToDate check should return true
+            boolean upToDateSameVersion = runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.1")
+            assertTrue("Expected task to be up-to-date with same version", upToDateSameVersion)
 
-        // changing the libertyVersion causes the upToDate check to return false
-        assertFalse runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.2")
+            // changing the libertyVersion causes the upToDate check to return false
+            boolean upToDateDifferentVersion = runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.2")
+            assertFalse("Expected task to not be up-to-date with different version", upToDateDifferentVersion)
 
-        // verify upToDate check returns true for same libertyVersion
-        assert runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.2")
+            // verify upToDate check returns true for same libertyVersion
+            boolean upToDateAfterRunning = runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.2")
+            assertTrue("Expected task to be up-to-date with same version after running once", upToDateAfterRunning)
 
-        // now delete the ws-launch.jar from the installation and ensure the upToDate check returns false even though the libertyVersion did not change
-        wsLaunchJar.delete()
-        assertFalse runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.2")
-
+            // now delete the ws-launch.jar from the installation and ensure the upToDate check returns false even though the libertyVersion did not change
+            if (wsLaunchJar.exists()) {
+                wsLaunchJar.delete()
+            }
+            boolean upToDateAfterDelete = runTaskCheckForUpToDate(buildDir, 'installLiberty', "-PlibertyVersion=21.0.0.2")
+            assertFalse("Expected task to not be up-to-date after deleting ws-launch.jar", upToDateAfterDelete)
+        } catch (Exception e) {
+            System.out.println("Error in test_installLiberty_upToDate: " + e.getMessage())
+            e.printStackTrace()
+            throw e;
+        }
     }
 }
