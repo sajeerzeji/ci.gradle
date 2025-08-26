@@ -193,12 +193,10 @@ class GenerateFeaturesTest extends BaseGenerateFeaturesTest {
             "  </featureManager>\n", serverXmlFile);
         runCompileAndGenerateFeatures();
 
-        Set<String> recommendedFeatureSet = new HashSet<String>(Arrays.asList("cdi-1.2", "servlet-4.0"));
-        String message = "A working set of features could not be generated due to conflicts " +
-                "between configured features: %s.";
-        // Check for log message containing the expected error message
-        boolean b = verifyLogMessageExists(String.format(message, recommendedFeatureSet), 1000, logFile)
-        assertTrue(formatOutput(getProcessOutput()), b);
+        // Verify log message containing the expected error message
+        // We will be considering the key parts of the error message instead of exact format because Gradle 9's output formatting has changed
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("A working set of features could not be generated due to conflicts between configured features", 1000, logFile));
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("servlet-4.0, cdi-1.2", 1000, logFile));
     }
 
     /**
@@ -222,25 +220,23 @@ class GenerateFeaturesTest extends BaseGenerateFeaturesTest {
             "    <feature>cdi-1.2</feature>\n" +
             "  </featureManager>\n", serverXmlFile);
         runCompileAndGenerateFeatures();
-        // SAMPLE LOG
+
+        // SAMPLE LOG [This log format will be different on different OS]
         // 6>> A working set of features could not be generated due to conflicts between configured features and
         // the application's API usage: [servlet-4.0, cdi-1.2].
         // Review and update your server configuration and application to ensure they are not using conflicting
         // features and APIs from differen2 actionable tasks: 2 executed
         // 7>EE, or Jakarta EE. Refer to the following set of suggested features for guidance: [servlet-4.0, cdi-2.0].
 
-        Set<String> conflictingFeaturesSet = new HashSet<String>(Arrays.asList("cdi-1.2", "servlet-4.0"));
-        String conflictErrorMessage = "A working set of features could not be generated due to conflicts " +
-                "between configured features and the application's API usage: %s.";
-        // Check for log message containing the expected error message
-        boolean conflictMessageFound = verifyLogMessageExists(String.format(conflictErrorMessage, conflictingFeaturesSet), 1000, logFile);
-        assertTrue(formatOutput(getProcessOutput()), conflictMessageFound);
+        // Verify log message containing the expected error message
+        // We will be considering the key parts of the error message instead of exact format because Gradle 9's output formatting has changed
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("A working set of features could not be generated due to conflicts between configured features", 1000, logFile));
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("servlet-4.0, cdi-1.2", 1000, logFile));
 
-        Set<String> suggestedFeaturesSet = new HashSet<String>(Arrays.asList("cdi-2.0", "servlet-4.0"));
-        String suggestionMessage = "Refer to the following set of suggested features for guidance: %s.";
-        // Check for log message containing the expected error message
-        boolean suggestionMessageFound = verifyLogMessageExists(String.format(suggestionMessage, suggestedFeaturesSet), 1000, logFile);
-        assertTrue(formatOutput(getProcessOutput()), suggestionMessageFound);
+        // Verify log message containing the expected error message
+        // We will be considering the key parts of the error message instead of exact format because Gradle 9's output formatting has changed
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("Refer to the following set of suggested features for guidance", 1000, logFile));
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("servlet-4.0, cdi-2.0", 1000, logFile));
     }
 
     /**
@@ -270,12 +266,10 @@ class GenerateFeaturesTest extends BaseGenerateFeaturesTest {
                         "  </featureManager>\n", serverXmlFile);
         runCompileAndGenerateFeatures();
 
-        Set<String> conflictingFeaturesSet = new HashSet<String>(Arrays.asList("mpOpenAPI-1.0", "servlet-4.0"));
-        String requiredMPLevel = "mp1.2";
-        String conflictErrorMessage = "A working set of features could not be generated due to conflicts in the required features: %s";
-        // Check for log message containing the expected error message
-        boolean conflictMessageFound = verifyLogMessageExists(String.format(conflictErrorMessage, conflictingFeaturesSet), 1000, logFile);
-        assertTrue(formatOutput(getProcessOutput()), conflictMessageFound);
+        // Verify log message containing the expected error message
+        // We will be considering the key parts of the error message instead of exact format because Gradle 9's output formatting has changed
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("A working set of features could not be generated due to conflicts in the required features", 1000, logFile));
+        assertTrue(formatOutput(getProcessOutput()), verifyLogMessageExists("servlet-4.0, mpOpenAPI-1.0", 1000, logFile));
     }
 
     /**
