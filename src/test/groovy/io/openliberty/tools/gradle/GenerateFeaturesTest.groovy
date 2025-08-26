@@ -272,9 +272,9 @@ class GenerateFeaturesTest extends BaseGenerateFeaturesTest {
 
         Set<String> conflictingFeaturesSet = new HashSet<String>(Arrays.asList("mpOpenAPI-1.0", "servlet-4.0"));
         String requiredMPLevel = "mp1.2";
-        String conflictErrorMessage = "A working set of features could not be generated due to conflicts in the required features: %s and required levels of MicroProfile: %s";
+        String conflictErrorMessage = "A working set of features could not be generated due to conflicts in the required features: %s";
         // Check for log message containing the expected error message
-        boolean conflictMessageFound = verifyLogMessageExists(String.format(conflictErrorMessage, conflictingFeaturesSet, requiredMPLevel), 1000, logFile);
+        boolean conflictMessageFound = verifyLogMessageExists(String.format(conflictErrorMessage, conflictingFeaturesSet), 1000, logFile);
         assertTrue(formatOutput(getProcessOutput()), conflictMessageFound);
     }
 
