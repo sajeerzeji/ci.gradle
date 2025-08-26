@@ -85,8 +85,8 @@ jobs:
         if: ${{ failure() }}
         run: |
           mkdir -p ${BUILD_REPORTS_PATH}
-          cp -r test ${BUILD_REPORTS_PATH}
-        working-directory: build/reports/tests
+          cp -r build/reports/tests/test/* ${BUILD_REPORTS_PATH} || echo "No test reports found"
+        working-directory: ${{github.workspace}}
         env:
           BUILD_REPORTS_PATH: ./buildReports/${{runner.os}}/java${{matrix.java}}/${{matrix.RUNTIME}}-${{matrix.RUNTIME_VERSION}}/
       - uses: actions/upload-artifact@v4
@@ -175,8 +175,12 @@ jobs:
       # Copy build reports and upload artifact if build failed
       - name: Copy build/report/tests/test for upload
         if: ${{ failure() }}
+        run: |
+          mkdir -p ${BUILD_REPORTS_PATH}
+          cp -r build/reports/tests/test/* ${BUILD_REPORTS_PATH} || echo "No test reports found"
         working-directory: ${{github.workspace}}
-        run: cp -r build/reports/tests/test ./buildReports/${{runner.os}}/java${{matrix.java}}/${{matrix.RUNTIME}}-${{matrix.RUNTIME_VERSION}}/
+        env:
+          BUILD_REPORTS_PATH: ./buildReports/${{runner.os}}/java${{matrix.java}}/${{matrix.RUNTIME}}-${{matrix.RUNTIME_VERSION}}/
       - uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
