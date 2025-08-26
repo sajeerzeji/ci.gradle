@@ -88,12 +88,12 @@ jobs:
           cp -r test ${BUILD_REPORTS_PATH}
         working-directory: build/reports/tests
         env:
-          BUILD_REPORTS_PATH: /buildReports/${{runner.os}}/java${{matrix.java}}/${{matrix.RUNTIME}}-${{matrix.RUNTIME_VERSION}}/
+          BUILD_REPORTS_PATH: ./buildReports/${{runner.os}}/java${{matrix.java}}/${{matrix.RUNTIME}}-${{matrix.RUNTIME_VERSION}}/
       - uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: buildReportsArtifactLinux
-          path: /buildReports
+          path: ./buildReports
           retention-days: 3
 
   # WINDOWS BUILDS
@@ -176,10 +176,10 @@ jobs:
       - name: Copy build/report/tests/test for upload
         if: ${{ failure() }}
         working-directory: ${{github.workspace}}
-        run: cp -r build/reports/tests/test C:/buildReports/${{runner.os}}/java${{matrix.java}}/${{matrix.RUNTIME}}-${{matrix.RUNTIME_VERSION}}/
+        run: cp -r build/reports/tests/test ./buildReports/${{runner.os}}/java${{matrix.java}}/${{matrix.RUNTIME}}-${{matrix.RUNTIME_VERSION}}/
       - uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: buildReportsArtifactWindows
-          path: C:/buildReports
+          path: ./buildReports
           retention-days: 3
