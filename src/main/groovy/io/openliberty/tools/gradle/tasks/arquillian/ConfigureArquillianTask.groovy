@@ -140,7 +140,7 @@ class ConfigureArquillianTask extends AbstractServerTask {
      * @throws ArquillianConfigurationException
      */
      private int getHttpPort() throws FileNotFoundException, XPathExpressionException, IOException, ParserConfigurationException, SAXException, ArquillianConfigurationException {
-        String serverDirectory = getServerDir(project);
+        String serverDirectory = getServerDir(project).toString();
         File serverXML = new File(serverDirectory + "/server.xml");
         File configVariableXML = new File(serverDirectory + "/configDropins/overrides/liberty-plugin-variable-config.xml")
         File bootstrapProperties = new File(serverDirectory + "/bootstrap.properties");

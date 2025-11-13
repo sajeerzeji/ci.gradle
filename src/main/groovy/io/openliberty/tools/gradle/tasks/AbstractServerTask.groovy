@@ -1183,5 +1183,4 @@ abstract class AbstractServerTask extends AbstractLibertyTask {
             return (new File(destDir, looseConfigFileName));
         }
     }
-
 }

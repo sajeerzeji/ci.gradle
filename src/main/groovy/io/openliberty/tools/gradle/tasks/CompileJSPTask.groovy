@@ -36,6 +36,13 @@ class CompileJSPTask extends AbstractFeatureTask {
 
     @TaskAction
     protected void compileJSP(){
+        // Use standard toolchain configuration
+        def javaHome = getToolchainJavaHome()
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome)
+        }
+
         if(getPackagingType().equals('war')){
             if ((server.deploy.apps == null || server.deploy.apps.isEmpty()) && (server.deploy.dropins == null || server.deploy.dropins.isEmpty())) {
                 perTaskCompileJSP(project.war)

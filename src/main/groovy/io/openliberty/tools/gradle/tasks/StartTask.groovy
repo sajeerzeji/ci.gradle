@@ -34,6 +34,13 @@ class StartTask extends AbstractServerTask {
 
     @TaskAction
     void start() {
+        // Use standard toolchain configuration
+        def javaHome = getToolchainJavaHome()
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome)
+        }
+        
         ServerTask serverTaskStart = createServerTask(project, "start");
         serverTaskStart.setUseEmbeddedServer(server.embedded)
         serverTaskStart.setClean(server.clean)

@@ -73,6 +73,13 @@ class DeployTask extends AbstractServerTask {
 
     @TaskAction
     void deploy() {
+        // Use standard toolchain configuration
+        def javaHome = getToolchainJavaHome()
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome)
+        }
+        
         boolean hasSpringBootAppConfigured
 
         configureApps(project)

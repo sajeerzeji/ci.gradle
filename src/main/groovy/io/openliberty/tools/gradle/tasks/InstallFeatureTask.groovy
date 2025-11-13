@@ -15,6 +15,8 @@
  */
 package io.openliberty.tools.gradle.tasks
 
+import org.gradle.jvm.toolchain.JvmVendorSpec
+
 import java.util.Set
 
 
@@ -47,6 +49,13 @@ class InstallFeatureTask extends AbstractFeatureTask {
 
     @TaskAction
     void installFeature() throws PluginExecutionException {
+        // Use standard toolchain configuration
+        def javaHome = getToolchainJavaHome()
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome)
+        }
+        
         // If non-container mode, check for Beta version and skip if needed.  Container mode does not need to check since featureUtility will check when it is called.
         def propertiesList = null;
         def openLibertyVersion = null;

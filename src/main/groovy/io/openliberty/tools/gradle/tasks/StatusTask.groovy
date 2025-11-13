@@ -29,6 +29,13 @@ class StatusTask extends AbstractServerTask {
 
     @TaskAction
     void status() {
+        // Use standard toolchain configuration
+        def javaHome = getToolchainJavaHome()
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome)
+        }
+
         if (isLibertyInstalledAndValid(project)) {
             File serverDir = getServerDir(project)
             if (serverDir.exists()) {

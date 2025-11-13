@@ -93,6 +93,13 @@ class CreateTask extends AbstractServerTask {
             logger.warn("The " + serverXmlFile.getAbsolutePath() + " does not exist. Copying over the defaultServer template server.xml file.")
         }
         copyConfigFiles()
+        
+        // Use standard toolchain configuration
+        def javaHome = getToolchainJavaHome()
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome)
+        }
     }
 
     protected boolean isServerDirChanged(Project project) {

@@ -489,7 +489,23 @@ class DevTask extends AbstractFeatureTask {
             if (libertyDebug) {
                 serverTask = createServerTask(project, "debug");
                 setLibertyDebugPort(libertyDebugPort);
-                serverTask.setEnvironmentVariables(getDebugEnvironmentVariables());
+                
+                // Use standard toolchain configuration
+                def javaHome = getToolchainJavaHome();
+                
+                if (javaHome != null) {
+                    // Configure server environment using standard approach
+                    configureServerEnvironment(javaHome);
+                    
+                    // Get debug environment variables and merge with toolchain JAVA_HOME
+                    Map<String, String> debugEnv = getDebugEnvironmentVariables();
+                    debugEnv.put("JAVA_HOME", javaHome);
+                    serverTask.setEnvironmentVariables(debugEnv);
+                } else {
+                    // No toolchain configured, use debug environment as-is
+                    Map<String, String> debugEnv = getDebugEnvironmentVariables();
+                    serverTask.setEnvironmentVariables(debugEnv);
+                }
             } else {
                 serverTask = createServerTask(project, "run");
             }
@@ -1399,6 +1415,13 @@ class DevTask extends AbstractFeatureTask {
         propertyFiles.add(new File(project.gradle.gradleUserHomeDir, "gradle.properties"));
         propertyFiles.add(new File(project.getRootDir(), "gradle.properties"));
         util.setPropertyFiles(propertyFiles);
+
+        // Use standard toolchain configuration for server startup
+        def javaHome = getToolchainJavaHome();
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome);
+        }
 
         util.startServer();
 

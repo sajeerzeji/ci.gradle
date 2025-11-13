@@ -22,6 +22,17 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.Nested
+import org.gradle.api.provider.Property
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.jvm.toolchain.JavaLauncher
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.api.plugins.JavaPluginExtension
+import javax.inject.Inject
 import groovy.xml.XmlParser
 
 abstract class AbstractLibertyTask extends DefaultTask {
@@ -31,6 +42,73 @@ abstract class AbstractLibertyTask extends DefaultTask {
     protected boolean isWindows = System.properties['os.name'].toLowerCase().indexOf("windows") >= 0
     protected String springBootVersion
     protected Task springBootTask
+
+    // Standard toolchain support properties
+    @Nested
+    public final Property<JavaLauncher> javaLauncher = project.objects.property(JavaLauncher)
+
+    public JavaLauncher getJavaLauncher() {
+        return javaLauncher.get()
+    }
+
+    public void setJavaLauncher(JavaLauncher launcher) {
+        javaLauncher.set(launcher)
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        return project.getExtensions().getByType(JavaToolchainService)
+    }
+
+    @InputFiles
+    @Optional
+    protected final ConfigurableFileCollection serverConfigFiles = project.objects.fileCollection()
+
+    protected ConfigurableFileCollection getServerConfigFiles() {
+        return serverConfigFiles
+    }
+
+    @OutputDirectory
+    @Optional
+    protected final DirectoryProperty serverOutputDirectory = project.objects.directoryProperty()
+
+    protected DirectoryProperty getServerOutputDirectory() {
+        return serverOutputDirectory
+    }
+
+    // Constructor to configure default toolchain behavior
+    AbstractLibertyTask() {
+        configureDefaults()
+    }
+
+    private void configureDefaults() {
+        // Use project toolchain as default if available
+        try {
+            def toolchain = project.extensions.getByType(JavaPluginExtension).toolchain
+            def defaultLauncher = getJavaToolchainService().launcherFor(toolchain)
+            javaLauncher.convention(defaultLauncher)
+        } catch (Exception e) {
+            logger.debug("Could not configure default toolchain: ${e.message}")
+        }
+        
+        // Configure file properties with sensible defaults - only for tasks that have server directories
+        try {
+            // Check if this task has getServerDir method (i.e., extends AbstractServerTask)
+            if (this.metaClass.respondsTo(this, 'getServerDir', Project)) {
+                serverConfigFiles.from(
+                    { ->
+                        def serverDir = getServerDir(project)
+                        serverDir ? new File(serverDir, "server.env") : null
+                    }
+                )
+                serverOutputDirectory.set(
+                    project.objects.directoryProperty()
+                )
+            }
+        } catch (Exception e) {
+            logger.debug("Could not configure server file properties: ${e.message}")
+        }
+    }
 
     protected boolean isInstallDirChanged(Project project) {
 
@@ -192,4 +270,76 @@ abstract class AbstractLibertyTask extends DefaultTask {
         return installProps
     }
 
+    /**
+     * Get the configured Java launcher from standard toolchain properties.
+     * This provides the standard way to access toolchain configuration.
+     */
+    @Internal
+    protected JavaLauncher getConfiguredLauncher() {
+        try {
+            def launcher = javaLauncher.get()
+            logger.debug("Successfully got configured launcher: ${launcher}")
+            return launcher
+        } catch (Exception e) {
+            logger.debug("Could not get configured launcher: ${e.message}")
+            return null
+        }
+    }
+
+    /**
+     * Get the Java home path from the configured toolchain.
+     * This provides the standard way to access the JDK path.
+     */
+    @Internal
+    protected String getToolchainJavaHome() {
+        def launcher = getConfiguredLauncher()
+        if (launcher != null) {
+            return launcher.metadata.installationPath.asFile.absolutePath
+        }
+        return null
+    }
+
+    /**
+     * Configure server environment with toolchain JDK using standard Gradle file operations.
+     * This provides the standard way to configure Liberty server with the correct JDK.
+     */
+    @Internal
+    protected void configureServerEnvironment(String javaHome) {
+        if (javaHome == null) {
+            return
+        }
+
+        try {
+            File serverDir = getServerDir(project)
+            if (serverDir == null) {
+                logger.warn("Server directory not found, cannot configure toolchain")
+                return
+            }
+
+            File serverEnvFile = new File(serverDir, "server.env")
+            
+            // Create server.env if it doesn't exist
+            if (!serverEnvFile.exists()) {
+                serverEnvFile.parentFile.mkdirs()
+                serverEnvFile.text = ""
+            }
+            
+            // Update JAVA_HOME using standard file operations
+            List<String> lines = serverEnvFile.exists() ? serverEnvFile.readLines() : []
+            boolean javaHomeExists = lines.any { it.startsWith("JAVA_HOME=") }
+            
+            if (javaHomeExists) {
+                lines = lines.collect { line ->
+                    line.startsWith("JAVA_HOME=") ? "JAVA_HOME=${javaHome}" : line
+                }
+            } else {
+                lines.add("JAVA_HOME=${javaHome}")
+            }
+            
+            serverEnvFile.text = lines.join(System.lineSeparator())
+            logger.lifecycle("Using toolchain JDK for Liberty server: ${javaHome}")
+        } catch (Exception e) {
+            logger.warn("Error configuring server to use toolchain JDK: ${e.message}")
+        }
+    }
 }

@@ -30,6 +30,13 @@ class RunTask extends AbstractServerTask {
 
     @TaskAction
     void run() {
+        // Use standard toolchain configuration
+        def javaHome = getToolchainJavaHome()
+        if (javaHome != null) {
+            // Configure server environment using standard approach
+            configureServerEnvironment(javaHome)
+        }
+        
         addShutdownHook {
             if (isLibertyInstalledAndValid(project)) {
                 File serverDir = getServerDir(project)
