@@ -19,7 +19,12 @@ jobs:
         # test against latest update of each major Java version, as well as specific updates of LTS versions:
         RUNTIME: [ol, wlp]
         RUNTIME_VERSION: [25.0.0.12]
-        java: [8, 11, 17, 21, 25]
+        java: [ 21, 17, 11, 8 ]
+        exclude:
+          - java: 8
+            RUNTIME: wlp
+          - java: 11
+            RUNTIME: ol
     name: ${{ matrix.RUNTIME }} ${{ matrix.RUNTIME_VERSION }}, Java ${{ matrix.java }}, Linux
     steps:
       # Checkout repos
@@ -93,7 +98,12 @@ jobs:
         # test against latest update of each major Java version, as well as specific updates of LTS versions:
         RUNTIME: [ol, wlp]
         RUNTIME_VERSION: [25.0.0.12]
-        java: [8, 11, 17, 21, 25]
+        java: [ 21, 17, 11, 8 ]
+        exclude:
+          - java: 8
+            RUNTIME: ol
+          - java: 11
+            RUNTIME: wlp
     name: ${{ matrix.RUNTIME }} ${{ matrix.RUNTIME_VERSION }}, Java ${{ matrix.java }}, Windows
     env:
       TEST_EXCLUDE: ${{ '**/Polling*,**/LibertyTest*,**/LibertyToolchainTest*,**/GenerateFeaturesTest*,**/TestSpringBootApplication30*,**/DevContainerTest*,**/DevModeToolchainTest*,**/DevModeToolchainTest*,**/TestLooseApplicationToolchain*,**/LibertyToolchainTest*' }}
