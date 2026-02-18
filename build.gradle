@@ -134,7 +134,6 @@ tasks.register('javadocJar', Jar) {
 }
 
 test {
-    failOnNoDiscoveredTests = false
     minHeapSize = "1G"
     maxHeapSize = "3G"
 
@@ -142,6 +141,7 @@ test {
     systemProperty 'runit', 'online'
 
     if (org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('9.0')) {
+        failOnNoDiscoveredTests = false
         exclude '**/TestSpringBootApplication20*'
     }
 
