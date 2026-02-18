@@ -87,6 +87,8 @@ class DevModeToolchainTest extends BaseDevTest {
         System.out.println(stderr)
         assertTrue("Toolchain warning should not appear when dev mode stops",
                 !verifyLogMessage(0, "Could not determine JDK home from toolchain", errFile))
+        assertTrue("Toolchain honored message should appear in dev mode output",
+                verifyLogMessage(0, String.format(TOOLCHAIN_CONFIGURED, "libertyDev"), logFile))
         cleanUpAfterClass(true)
     }
 }
