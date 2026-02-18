@@ -85,6 +85,8 @@ class DevModeToolchainTest extends BaseDevTest {
         System.out.println(stdout)
         String stderr = getContents(errFile, "Dev mode std error")
         System.out.println(stderr)
+        assertTrue("Toolchain warning should not appear when dev mode stops",
+                !verifyLogMessage(0, "Could not determine JDK home from toolchain", errFile))
         cleanUpAfterClass(true)
     }
 }

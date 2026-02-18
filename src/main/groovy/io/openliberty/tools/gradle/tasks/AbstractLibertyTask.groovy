@@ -45,6 +45,9 @@ abstract class AbstractLibertyTask extends DefaultTask {
     @Optional
     public final Property<JavaLauncher> javaLauncher = project.objects.property(JavaLauncher)
 
+    // Cached toolchain javaHome
+    private String resolvedToolchainJavaHome = null
+
     public JavaLauncher getJavaLauncher() {
         if(!javaLauncher.isPresent()) {
             configureDefaults();
@@ -272,11 +275,14 @@ abstract class AbstractLibertyTask extends DefaultTask {
      */
     @Internal
     protected String getToolchainJavaHome() {
+        if (resolvedToolchainJavaHome != null) {
+            return resolvedToolchainJavaHome
+        }
         def launcher = getConfiguredLauncher()
         if (launcher != null) {
-            return launcher.metadata.installationPath.asFile.absolutePath
+            resolvedToolchainJavaHome = launcher.metadata.installationPath.asFile.absolutePath
         }
-        return null
+        return resolvedToolchainJavaHome
     }
     @Internal
     protected boolean isToolchainConfigured() {
