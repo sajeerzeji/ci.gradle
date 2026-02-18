@@ -93,7 +93,7 @@ jobs:
         # test against latest update of each major Java version, as well as specific updates of LTS versions:
         RUNTIME: [ol, wlp]
         RUNTIME_VERSION: [25.0.0.12]
-        java: [21, 17, 25]
+        java: [8, 11, 17, 21, 25]
     name: ${{ matrix.RUNTIME }} ${{ matrix.RUNTIME_VERSION }}, Java ${{ matrix.java }}, Windows
     env:
       TEST_EXCLUDE: ${{ '**/Polling*,**/LibertyTest*,**/LibertyToolchainTest*,**/GenerateFeaturesTest*,**/TestSpringBootApplication30*,**/DevContainerTest*,**/DevModeToolchainTest*,**/DevModeToolchainTest*,**/TestLooseApplicationToolchain*,**/LibertyToolchainTest*' }}
