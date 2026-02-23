@@ -946,7 +946,8 @@ class DevTask extends AbstractFeatureTask {
                     def launcher = getJavaLauncher();
                     def scopeString = isTest ? "test " : "";
 
-                    if (launcher != null && launcher.metadata != null) {
+                    if (launcher != null && launcher.metadata != null
+                            && !isJavaHomeSetForEnvProperties && !isJavaHomeSetForJvmOptions) {
                         def metadata = launcher.metadata;
                         logger.lifecycle(
                                 "Using Java toolchain for dev mode ${scopeString}compilation: " +

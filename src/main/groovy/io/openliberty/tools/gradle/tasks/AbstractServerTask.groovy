@@ -77,6 +77,9 @@ abstract class AbstractServerTask extends AbstractLibertyTask {
     protected def server
     protected def springBootBuildTask
 
+    protected boolean isJavaHomeSetForEnvProperties = false
+    protected boolean isJavaHomeSetForJvmOptions = false
+
     private enum PropertyType {
         BOOTSTRAP("liberty.server.bootstrapProperties"),
         ENV("liberty.server.env"),
@@ -1217,6 +1220,9 @@ abstract class AbstractServerTask extends AbstractLibertyTask {
      */
     @Internal
     protected Map<String, String> getToolchainEnvVar() {
+        this.isJavaHomeSetForEnvProperties = isJavaHomeSetForEnvProperties();
+        this.isJavaHomeSetForJvmOptions = isJavaHomeSetForJvmOptions();
+
         if (!isToolchainConfigured()) {
             logger.debug("Toolchain is not specified in build context")
             return Collections.emptyMap();
@@ -1230,7 +1236,7 @@ abstract class AbstractServerTask extends AbstractLibertyTask {
             // run once to make sure project properties are loaded
             loadLibertyConfigFromProperties();
         }
-        if (!isJavaHomeSetForEnvProperties() && !isJavaHomeSetForJvmOptions()) {
+        if (!isJavaHomeSetForEnvProperties && !isJavaHomeSetForJvmOptions) {
             logger.info("CWWKM4101I: The " + this.path + " task is using the configured toolchain JDK located at " + jdkHome)
             // 3. Apply toolchain configuration
             return populateEnvironmentVariablesMap(jdkHome);
