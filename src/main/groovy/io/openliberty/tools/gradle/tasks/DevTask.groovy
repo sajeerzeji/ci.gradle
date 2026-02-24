@@ -953,10 +953,11 @@ class DevTask extends AbstractFeatureTask {
                                 "Using Java toolchain for dev mode ${scopeString}compilation: " +
                                         "version=${metadata.languageVersion}, javaHome=${metadata.installationPath.asFile}"
                         );
+                    } else if (isJavaHomeSetForEnvProperties || isJavaHomeSetForJvmOptions) {
+                        logger.debug("JAVA_HOME is set in ${isJavaHomeSetForEnvProperties ? 'server.env' : 'jvm.options'}, " +
+                                "taking precedence over Java toolchain for dev mode ${scopeString}compilation.");
                     } else {
-                        logger.debug(
-                                "No Java toolchain launcher is configured for dev mode ${scopeString}compilation."
-                        );
+                        logger.debug("No Java toolchain launcher is configured for dev mode ${scopeString}compilation.");
                     }
                 }
 
