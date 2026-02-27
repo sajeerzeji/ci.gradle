@@ -17,17 +17,14 @@ class InstallFeatureToolchainTest extends AbstractIntegrationTest {
     public static void setup() {
         createDir(buildDir)
         createTestProject(buildDir, resourceDir, buildFilename)
-        
-        // Modify build.gradle to add java plugin and toolchain configuration
+
         File buildFile = new File(buildDir, "build.gradle")
-        String originalContent = buildFile.text
-        
-        // Insert java plugin and toolchain configuration after the liberty plugin line
-        String modifiedContent = originalContent.replace(
+        def fileContent = buildFile.text
+        fileContent = fileContent.replace(
             "apply plugin: 'liberty'",
             "apply plugin: 'liberty'\napply plugin: 'java'\n\njava {\n    toolchain {\n        languageVersion = JavaLanguageVersion.of(17)\n    }\n}"
         )
-        buildFile.text = modifiedContent
+        buildFile.text = fileContent
     }
     
     @Before
@@ -46,10 +43,9 @@ class InstallFeatureToolchainTest extends AbstractIntegrationTest {
         assertTrue("Should show toolchain configured message for installFeature task",
                 output.contains(String.format(TOOLCHAIN_CONFIGURED, "installFeature")))
     }
-    
-    private void copyServer(String serverXmlFile) {
-        File serverXml = new File(buildDir, "build/wlp/usr/servers/defaultServer/server.xml")
-        File sourceServerXml = new File(resourceDir, serverXmlFile)
-        copyFile(sourceServerXml, serverXml)
+
+    private copyServer(String serverFile) {
+        assertTrue(new File(resourceDir, serverFile).exists())
+        copyFile(new File(resourceDir, serverFile), new File(buildDir, "build/wlp/usr/servers/defaultServer/server.xml"))
     }
 }
