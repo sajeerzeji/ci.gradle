@@ -114,8 +114,13 @@ public class LooseEarApplication extends LooseApplication {
                     // the correct Class-Path entries from jar { manifest { attributes } } in build.gradle.
                     // This avoids stale or incomplete Class-Path entries in any static MANIFEST.MF in resources.
                     File jarTaskManifest = new File(proj.jar.temporaryDir, "MANIFEST.MF")
-                    File manifestToUse = jarTaskManifest.exists() ? jarTaskManifest : f
-                    addManifestFileWithParent(moduleArchive, manifestToUse, proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
+                    if (jarTaskManifest.exists()) {
+                        config.addFile(moduleArchive, jarTaskManifest, "/META-INF/MANIFEST.MF")
+                        // Parse Class-Path and add dependency class directories to module archive
+                        addManifestClassPathDependencies(moduleArchive, jarTaskManifest, proj)
+                    } else {
+                        addManifestFileWithParent(moduleArchive, f, proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
+                    }
                     manifestAdded = true
                     break
                 default:
@@ -127,8 +132,45 @@ public class LooseEarApplication extends LooseApplication {
         if (!manifestAdded) {
             File jarTaskManifest = new File(proj.jar.temporaryDir, "MANIFEST.MF")
             if (jarTaskManifest.exists()) {
-                addManifestFileWithParent(moduleArchive, jarTaskManifest, proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
+                config.addFile(moduleArchive, jarTaskManifest, "/META-INF/MANIFEST.MF")
+                // Parse Class-Path and add dependency class directories to module archive
+                addManifestClassPathDependencies(moduleArchive, jarTaskManifest, proj)
             }
+        }
+    }
+    
+    private void addManifestClassPathDependencies(Element moduleArchive, File manifestFile, Project proj) {
+        try {
+            def manifest = new java.util.jar.Manifest(new FileInputStream(manifestFile))
+            String classPath = manifest.getMainAttributes().getValue("Class-Path")
+            logger.info("Processing manifest Class-Path for ${proj.name}: ${classPath}")
+            if (classPath) {
+                classPath.split(/\s+/).each { String jarName ->
+                    if (jarName && jarName.endsWith(".jar")) {
+                        String depName = jarName.replace(".jar", "")
+                        // Try to find the project dependency
+                        def depProj = proj.rootProject.findProject(":${depName}")
+                        logger.info("Looking for dependency project: ${depName}, found: ${depProj != null}")
+                        if (depProj && depProj.hasProperty('sourceSets')) {
+                            // Add the dependency's class directories to this module archive
+                            depProj.sourceSets.main.output.classesDirs.files.each { File classesDir ->
+                                if (classesDir.exists()) {
+                                    logger.info("Adding dependency class dir to ${proj.name}: ${classesDir}")
+                                    config.addDir(moduleArchive, classesDir, "/")
+                                }
+                            }
+                            // Add the dependency's resource directory to this module archive
+                            def resourcesDir = depProj.sourceSets.main.output.resourcesDir
+                            if (resourcesDir && resourcesDir.exists()) {
+                                logger.info("Adding dependency resource dir to ${proj.name}: ${resourcesDir}")
+                                config.addDir(moduleArchive, resourcesDir, "/")
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not parse manifest Class-Path from ${manifestFile}: ${e.message}", e)
         }
     }
     
