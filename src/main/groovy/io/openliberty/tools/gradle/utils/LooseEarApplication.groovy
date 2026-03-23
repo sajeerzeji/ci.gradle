@@ -100,6 +100,7 @@ public class LooseEarApplication extends LooseApplication {
     }
     
     private void addModules(Element moduleArchive, Project proj) {
+        boolean manifestAdded = false
         for (File f : proj.jar.source.getFiles()) {
             String extension = FilenameUtils.getExtension(f.getAbsolutePath())
             switch(extension) {
@@ -109,13 +110,24 @@ public class LooseEarApplication extends LooseApplication {
                     config.addFile(moduleArchive, f, "/WEB-INF/lib/" + f.getName());
                     break
                 case "MF":
-                    //This checks the manifest file and resource directory of the project's jar source set.
-                    //The location of the resource directory should be the same as proj.getProjectDir()/build/resources.
-                    //If the manifest file exists, it is copied to proj.getProjectDir()/build/resources/tmp/META-INF. If it does not exist, one is created there.
-                    addManifestFileWithParent(moduleArchive, f, proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
+                    // Prefer the jar task's generated manifest (build/tmp/jar/MANIFEST.MF) which has
+                    // the correct Class-Path entries from jar { manifest { attributes } } in build.gradle.
+                    // This avoids stale or incomplete Class-Path entries in any static MANIFEST.MF in resources.
+                    File jarTaskManifest = new File(proj.jar.temporaryDir, "MANIFEST.MF")
+                    File manifestToUse = jarTaskManifest.exists() ? jarTaskManifest : f
+                    addManifestFileWithParent(moduleArchive, manifestToUse, proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
+                    manifestAdded = true
                     break
                 default:
                     break
+            }
+        }
+        // If no .MF file was found in the jar source set (e.g. no static MANIFEST.MF in resources),
+        // still add the jar task's generated manifest if it exists.
+        if (!manifestAdded) {
+            File jarTaskManifest = new File(proj.jar.temporaryDir, "MANIFEST.MF")
+            if (jarTaskManifest.exists()) {
+                addManifestFileWithParent(moduleArchive, jarTaskManifest, proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
             }
         }
     }
