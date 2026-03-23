@@ -1,23 +1,23 @@
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'base'
+apply plugin: 'com.gradleup.nmcp'
+apply plugin: 'com.gradleup.nmcp.aggregation'
 
 signing {
     required = false
 }
 
-tasks.withType(org.gradle.plugins.signing.Sign).configureEach {
-    onlyIf {
-        // Skip signing tasks unless a signatory is available.
-        project.signing.signatory != null
-    }
+tasks.withType(AbstractPublishToMaven).configureEach {
+    dependsOn tasks.withType(Sign)
 }
 
 group = 'io.openliberty.tools'
-version = '4.0.0-SNAPSHOT'
+version = '4.0.1-SNAPSHOT'
 base {
     archivesName='liberty-gradle-plugin'
 }
@@ -41,12 +41,14 @@ repositories {
 buildscript {
     repositories {
         mavenLocal()
+        mavenCentral()
         maven {
             url = "https://plugins.gradle.org/m2/"
         }
     }
     dependencies {
-        classpath "com.gradle.publish:plugin-publish-plugin:1.0.0"
+        classpath "com.gradle.publish:plugin-publish-plugin:2.0.0"
+        classpath "com.gradleup.nmcp:com.gradleup.nmcp.gradle.plugin:1.1.0"
     }
 }
 
@@ -107,7 +109,7 @@ java {
 }
 
 def libertyAntVersion = "1.9.18"
-def libertyCommonVersion = "1.8.41-SNAPSHOT"
+def libertyCommonVersion = "1.8.41"
 
 
 dependencies {
@@ -269,13 +271,11 @@ publishing {
 if (project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')) {
 
     if (!version.endsWith("SNAPSHOT")) {
-
         signing {
+            required = true
             sign publishing.publications.libertyGradle
         }
     } else {
-        signing.required = false
-
         publishing {
             repositories {
                 maven {
@@ -300,3 +300,40 @@ publishToMavenLocal.dependsOn jar
 
 groovydoc.enabled = false
 javadoc.enabled = false
+
+// NMCP Plugin configuration for Maven Central publishing
+// Publish with publishAggregationToCentralPortal task
+// Docs: https://github.com/GradleUp/nmcp
+nmcpAggregation {
+    centralPortal {
+        username = project.findProperty('ossrhUsername')
+        password = project.findProperty('ossrhPassword')
+        // Publish manually from the portal
+        publishingType = "USER_MANAGED"
+
+        validationTimeout = java.time.Duration.ZERO
+    }
+    // Required to find projects with the maven-publish plugin (this project)
+    publishAllProjectsProbablyBreakingProjectIsolation()
+    afterEvaluate {
+        tasks.matching {
+            it.name == 'publishCigradlePluginMarkerMavenPublicationToNmcpRepository' ||
+                    it.name == 'publishPluginMavenPublicationToNmcpRepository'
+        }.configureEach {
+            enabled = false
+        }
+        project(':pluginRepo').tasks.matching {
+            it.name.contains('ToNmcpRepository')
+        }.configureEach {
+            enabled = false
+        }
+    }
+
+    tasks.matching { it.name.startsWith('nmcp') }.configureEach {
+        mustRunAfter tasks.withType(AbstractPublishToMaven)
+    }
+
+    tasks.named('nmcpZipAggregation') {
+        duplicatesStrategy = DuplicatesStrategy.WARN
+    }
+}
