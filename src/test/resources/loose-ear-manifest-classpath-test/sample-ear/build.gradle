@@ -1,0 +1,45 @@
+apply plugin: 'ear'
+apply plugin: 'liberty'
+
+description = 'Sample EAR Module for manifest Class-Path loose mode test'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url = 'https://central.sonatype.com/repository/maven-snapshots/'
+        }
+    }
+    dependencies {
+        classpath "io.openliberty.tools:liberty-gradle-plugin:$lgpVersion"
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    deploy project(':sample-ejb')
+    deploy project(':sample-lib')
+    libertyRuntime group: runtimeGroup, name: kernelArtifactId, version: runtimeVersion
+}
+
+ear {
+    archiveFileName = getArchiveBaseName().get() + '.' + getArchiveExtension().get()
+}
+
+liberty {
+    server {
+        name = 'earServer'
+        deploy {
+            apps = [ear]
+        }
+        verifyAppStartTimeout = 30
+        looseApplication = true
+    }
+}
+
+deploy.dependsOn 'ear'

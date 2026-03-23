@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="manifest classpath loose ear test server">
+
+    <featureManager>
+        <feature>javaee-7.0</feature>
+    </featureManager>
+
+    <keyStore password="change1me"/>
+
+    <httpEndpoint id="defaultHttpEndpoint"
+                  httpPort="9080"
+                  httpsPort="9443" />
+
+    <enterpriseApplication id="sample-ear" location="sample-ear.ear" name="sample-ear"/>
+</server>

@@ -20,9 +20,14 @@ import io.openliberty.tools.common.plugins.config.LooseConfigData
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.logging.Logger
 import org.gradle.plugins.ear.Ear
 import org.w3c.dom.Element
+
+import java.util.jar.Attributes
+import java.util.jar.Manifest
 
 public class LooseEarApplication extends LooseApplication {
     
@@ -72,7 +77,7 @@ public class LooseEarApplication extends LooseApplication {
         if (resourcesDirContentsExist(proj)) {
             config.addDir(warArchive, proj.sourceSets.main.getOutput().getResourcesDir(), "/WEB-INF/classes");
         }
-        addModules(warArchive,proj)
+        addWarModuleArtifacts(warArchive, proj)
         return warArchive;
     }
 
@@ -95,11 +100,123 @@ public class LooseEarApplication extends LooseApplication {
         if (resourcesDirContentsExist(proj)) {
             config.addDir(moduleArchive, proj.sourceSets.main.getOutput().getResourcesDir(), "/");
         }
-        addModules(moduleArchive, proj)
+
+        addModuleLibraries(moduleArchive, proj)
+        addJarModuleManifestAndClassPathEntries(moduleArchive, proj)
+
         return moduleArchive;
     }
-    
-    private void addModules(Element moduleArchive, Project proj) {
+
+    private void addJarModuleManifestAndClassPathEntries(Element moduleArchive, Project proj) {
+        File manifestFile = getJarTaskManifestFile(proj)
+        if (manifestFile == null || !manifestFile.exists()) {
+            logger.debug("No jar manifest found for project " + proj.getPath() + ". Skipping manifest Class-Path processing for loose EAR.")
+            return
+        }
+
+        addManifestFileWithParent(moduleArchive, manifestFile,
+            proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
+
+        List<String> classPathEntries = getManifestClassPathEntries(manifestFile)
+        classPathEntries.each { entry ->
+            addManifestClassPathEntry(moduleArchive, proj, entry)
+        }
+    }
+
+    private File getJarTaskManifestFile(Project proj) {
+        def jarTask = proj.tasks.findByName('jar')
+        if (jarTask == null) {
+            return null
+        }
+        return new File(jarTask.getTemporaryDir(), "MANIFEST.MF")
+    }
+
+    private List<String> getManifestClassPathEntries(File manifestFile) {
+        List<String> entries = new ArrayList<>()
+        Manifest manifest
+        manifestFile.withInputStream { input ->
+            manifest = new Manifest(input)
+        }
+        String classPath = manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH)
+        if (classPath == null || classPath.trim().isEmpty()) {
+            return entries
+        }
+        classPath.trim().split("\\s+").each { token ->
+            if (token != null && !token.trim().isEmpty()) {
+                entries.add(token.trim())
+            }
+        }
+        return entries
+    }
+
+    private void addManifestClassPathEntry(Element moduleArchive, Project proj, String classPathEntry) {
+        String entryName = new File(classPathEntry).getName()
+        if (entryName == null || entryName.isEmpty()) {
+            return
+        }
+
+        Project resolvedProjectDependency = resolveProjectDependencyForClassPathEntry(proj, entryName)
+        if (resolvedProjectDependency != null) {
+            resolvedProjectDependency.sourceSets.main.getOutput().getClassesDirs().each { dir ->
+                config.addDir(moduleArchive, dir, "/")
+            }
+            if (resourcesDirContentsExist(resolvedProjectDependency)) {
+                config.addDir(moduleArchive, resolvedProjectDependency.sourceSets.main.getOutput().getResourcesDir(), "/")
+            }
+            return
+        }
+
+        File resolvedFileDependency = resolveFileDependencyForClassPathEntry(proj, entryName)
+        if (resolvedFileDependency != null && resolvedFileDependency.exists()) {
+            String targetPath = classPathEntry.startsWith("/") ? classPathEntry : "/" + classPathEntry
+            config.addFile(moduleArchive, resolvedFileDependency, targetPath)
+            return
+        }
+
+        logger.debug("Unable to resolve manifest Class-Path entry '" + classPathEntry + "' for project " + proj.getPath() + ".")
+    }
+
+    private Project resolveProjectDependencyForClassPathEntry(Project proj, String entryName) {
+        Set<ProjectDependency> projectDependencies = new LinkedHashSet<>()
+        proj.configurations.each { configuration ->
+            configuration.getAllDependencies().each { dep ->
+                if (dep instanceof ProjectDependency) {
+                    projectDependencies.add((ProjectDependency) dep)
+                }
+            }
+        }
+
+        for (ProjectDependency dependency : projectDependencies) {
+            Project dependencyProject = proj.getRootProject().findProject(dependency.getPath())
+            if (dependencyProject == null || dependencyProject.tasks.findByName('jar') == null) {
+                continue
+            }
+            String archiveName = dependencyProject.jar.getArchiveFileName().get()
+            if (entryName.equals(archiveName) || entryName.equals(dependencyProject.getName() + ".jar")) {
+                return dependencyProject
+            }
+        }
+
+        return null
+    }
+
+    private File resolveFileDependencyForClassPathEntry(Project proj, String entryName) {
+        List<String> configurationNames = ["runtimeClasspath", "compileClasspath"]
+        for (String configurationName : configurationNames) {
+            Configuration configuration = proj.configurations.findByName(configurationName)
+            if (configuration == null) {
+                continue
+            }
+            for (File file : configuration.getFiles()) {
+                if (entryName.equals(file.getName())) {
+                    return file
+                }
+            }
+        }
+        return null
+    }
+
+    private void addModuleLibraries(Element moduleArchive, Project proj) {
         for (File f : proj.jar.source.getFiles()) {
             String extension = FilenameUtils.getExtension(f.getAbsolutePath())
             switch(extension) {
@@ -108,16 +225,29 @@ public class LooseEarApplication extends LooseApplication {
                 case "rar":
                     config.addFile(moduleArchive, f, "/WEB-INF/lib/" + f.getName());
                     break
+                default:
+                    break
+            }
+        }
+    }
+
+    private void addWarModuleArtifacts(Element warArchive, Project proj) {
+        for (File f : proj.jar.source.getFiles()) {
+            String extension = FilenameUtils.getExtension(f.getAbsolutePath())
+            switch(extension) {
+                case "jar":
+                case "war":
+                case "rar":
+                    config.addFile(warArchive, f, "/WEB-INF/lib/" + f.getName())
+                    break
                 case "MF":
-                    //This checks the manifest file and resource directory of the project's jar source set.
-                    //The location of the resource directory should be the same as proj.getProjectDir()/build/resources.
-                    //If the manifest file exists, it is copied to proj.getProjectDir()/build/resources/tmp/META-INF. If it does not exist, one is created there.
-                    addManifestFileWithParent(moduleArchive, f, proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
+                    addManifestFileWithParent(warArchive, f,
+                        proj.sourceSets.main.getOutput().getResourcesDir().getParentFile().getCanonicalPath())
                     break
                 default:
                     break
             }
         }
     }
-    
+
 }

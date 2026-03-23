@@ -1,0 +1,13 @@
+description = 'Sample EJB module using manifest Class-Path'
+
+dependencies {
+    compileOnly group: 'javax', name: 'javaee-api', version:'7.0'
+    compileOnly project(':sample-lib')
+}
+
+jar {
+    archiveFileName = getArchiveBaseName().get() + '.' + getArchiveExtension().get()
+    manifest {
+        attributes('Class-Path': 'sample-lib.jar')
+    }
+}

@@ -1,0 +1,5 @@
+description = 'Sample library module referenced by manifest Class-Path'
+
+jar {
+    archiveFileName = getArchiveBaseName().get() + '.' + getArchiveExtension().get()
+}
