@@ -379,15 +379,16 @@ class DevTask extends AbstractFeatureTask {
                     boolean  hotTests, boolean  skipTests, boolean skipInstallFeature, String artifactId, int serverStartTimeout,
                     int verifyAppStartTimeout, int appUpdateTimeout, double compileWait,
                     boolean libertyDebug, boolean pollingTest, boolean container, File containerfile, File containerBuildContext,
-                    String containerRunOpts, int containerBuildTimeout, boolean skipDefaultPorts, boolean keepTempContainerfile, 
+                    String containerRunOpts, int containerBuildTimeout, boolean skipDefaultPorts, boolean keepTempContainerfile,
                     String mavenCacheLocation, String packagingType, File buildFile, boolean generateFeatures, List<Path> webResourceDirs,
-                    List<ProjectModule> projectModuleList, Map<String, List<String>> parentBuildGradle, File serverOutputDir
+                    List<ProjectModule> projectModuleList, Map<String, List<String>> parentBuildGradle, File serverOutputDir,
+                    JavaCompilerOptions compilerOptions
         ) throws IOException, PluginExecutionException {
             super(buildDir, serverDirectory, sourceDirectory, testSourceDirectory, configDirectory, projectDirectory, /* multi module project directory */ projectDirectory,
                     resourceDirs, changeOnDemandTestsAction, hotTests, skipTests, false /* skipUTs */, false /* skipITs */, skipInstallFeature, artifactId,  serverStartTimeout,
                     verifyAppStartTimeout, appUpdateTimeout, ((long) (compileWait * 1000L)), libertyDebug,
                     true /* useBuildRecompile */, true /* gradle */, pollingTest, container, containerfile, containerBuildContext, containerRunOpts, containerBuildTimeout, skipDefaultPorts,
-                    null /* compileOptions not needed since useBuildRecompile is true */, keepTempContainerfile, mavenCacheLocation, projectModuleList /* multi module upstream projects */,
+                    compilerOptions, keepTempContainerfile, mavenCacheLocation, projectModuleList /* multi module upstream projects */,
                     projectModuleList.size() > 0 /* recompileDependencies as true for multi module */, packagingType, buildFile, parentBuildGradle /* parent build files */, generateFeatures, null /* compileArtifactPaths */, null /* testArtifactPaths */, webResourceDirs /* webResources */
                 );
             this.libertyDirPropertyFiles = LibertyPropFilesUtility.getLibertyDirectoryPropertyFiles(new CommonLogger(project), installDirectory, userDirectory, serverDirectory, serverOutputDir);
@@ -587,6 +588,13 @@ class DevTask extends AbstractFeatureTask {
                 logger.error("Could not parse build.gradle " + e.getMessage());
                 logger.debug('Error parsing build.gradle', e);
                 return false;
+            }
+
+            JavaCompilerOptions oldCompilerOptions = getGradleCompilerOptions(project)
+            JavaCompilerOptions newCompilerOptions = getGradleCompilerOptions(newProject)
+            if (!oldCompilerOptions.getOptions().equals(newCompilerOptions.getOptions())) {
+                logger.debug('Gradle compiler options have been modified: ' + newCompilerOptions.getOptions())
+                util.updateJavaCompilerOptions(newCompilerOptions)
             }
 
             // Detect change in installation configuration that requires restart of dev mode. Throw error.
@@ -1346,7 +1354,8 @@ class DevTask extends AbstractFeatureTask {
                 verifyAppStartTimeout.intValue(), verifyAppStartTimeout.intValue(), compileWait.doubleValue(),
                 libertyDebug.booleanValue(), pollingTest.booleanValue(), container.booleanValue(), containerfile, containerBuildContext, containerRunOpts,
                 containerBuildTimeout, skipDefaultPorts.booleanValue(), keepTempContainerfile.booleanValue(), localMavenRepoForFeatureUtility,
-                DevTaskHelper.getPackagingType(project), buildFile, generateFeatures.booleanValue(), webResourceDirs, projectModules, parentBuildGradle, new File(outputDir, serverName)
+                DevTaskHelper.getPackagingType(project), buildFile, generateFeatures.booleanValue(), webResourceDirs, projectModules, parentBuildGradle, new File(outputDir, serverName),
+                getGradleCompilerOptions(project)
             );
         } catch (IOException | PluginExecutionException e) {
             throw new GradleException("Error initializing dev mode.", e)
@@ -1492,11 +1501,9 @@ class DevTask extends AbstractFeatureTask {
     protected List<ProjectModule> getProjectModules() {
         List<ProjectModule> upstreamProjects = new ArrayList<ProjectModule>();
         for (Project dependencyProject : DevTaskHelper.getAllUpstreamProjects(project)) {
-            // In Maven , there is a step to set compiler options for upstream project
-            // Gradle does not need to manually inject compiler options because
-            // we are directly calling compileJava task, which internally takes the compiler options
-            // from task definition or command line arguments
-            JavaCompilerOptions upstreamCompilerOptions = new JavaCompilerOptions();
+            // Read compiler options (annotation processor path, compiler args) from the upstream project's
+            // compileJava task so they are available for any direct javac recompilation paths.
+            JavaCompilerOptions upstreamCompilerOptions = getGradleCompilerOptions(dependencyProject)
             SourceSetContainer depSourceSets = dependencyProject.extensions.findByType(SourceSetContainer)
             SourceSet mainSourceSet = depSourceSets?.findByName('main')
             SourceSet testSourceSet = depSourceSets?.findByName('test')
@@ -1708,6 +1715,64 @@ class DevTask extends AbstractFeatureTask {
             rootCause = rootCause.getCause();
         }
         return null;
+    }
+
+    /**
+     * Build a JavaCompilerOptions from the given Gradle project's compileJava task settings.
+     * Reads the annotation processor path (with transitive resolution via Gradle's own dependency
+     * engine) and compiler args, mirroring what getMavenCompilerOptions() does in ci.maven's DevMojo.
+     *
+     * @param p the Gradle project to read compiler options from
+     * @return populated JavaCompilerOptions, never null
+     */
+    private JavaCompilerOptions getGradleCompilerOptions(Project p) {
+        JavaCompilerOptions opts = new JavaCompilerOptions()
+        try {
+            def compileTask = p.tasks.findByName('compileJava')
+            if (compileTask == null) return opts
+
+            // 1. Annotation processor path
+            // Priority 1: explicit FileCollection set on compileJava.options.annotationProcessorPath
+            def apPath = compileTask.options.annotationProcessorPath
+            if (apPath != null) {
+                try {
+                    // Resolve .files once — avoids double resolution and surfaces failures precisely.
+                    // Gradle resolves transitives automatically — no Aether plumbing needed.
+                    Set apFiles = apPath.files
+                    if (!apFiles.isEmpty()) {
+                        String pathStr = apFiles.collect { it.absolutePath }.join(File.pathSeparator)
+                        opts.setAnnotationProcessorPath(pathStr)
+                        logger.debug("Dev mode annotation processor path (compileJava.options): " + pathStr)
+                    }
+                } catch (Exception e) {
+                    logger.debug("Could not resolve annotationProcessorPath on compileJava for project '" + p.name + "': " + e.getMessage())
+                }
+            } else {
+                // Priority 2: annotationProcessor configuration (standard Gradle idiom)
+                def apConfig = p.configurations.findByName('annotationProcessor')
+                if (apConfig != null) {
+                    Set resolvedArtifacts = apConfig.resolvedConfiguration.resolvedArtifacts
+                    if (!resolvedArtifacts.isEmpty()) {
+                        String pathStr = resolvedArtifacts
+                                .collect { it.file.absolutePath }.join(File.pathSeparator)
+                        opts.setAnnotationProcessorPath(pathStr)
+                        logger.debug("Dev mode annotation processor path (annotationProcessor config): " + pathStr)
+                    }
+                }
+            }
+
+            // 2. Compiler args (e.g. -parameters, -Xlint:unchecked, -proc:full)
+            List<String> args = compileTask.options.compilerArgs
+            if (args != null && !args.isEmpty()) {
+                opts.setCompilerArgs(new ArrayList<>(args))
+                logger.debug("Dev mode compiler args: " + args)
+            }
+        } catch (Exception e) {
+            logger.warn("Could not read compiler options for project '" + p.name
+                    + "' (" + e.getClass().getSimpleName() + "): " + e.getMessage())
+            logger.debug("Compiler options resolution failure for project '" + p.name + "'", e)
+        }
+        return opts
     }
 
 }
