@@ -381,14 +381,13 @@ class DevTask extends AbstractFeatureTask {
                     boolean libertyDebug, boolean pollingTest, boolean container, File containerfile, File containerBuildContext,
                     String containerRunOpts, int containerBuildTimeout, boolean skipDefaultPorts, boolean keepTempContainerfile,
                     String mavenCacheLocation, String packagingType, File buildFile, boolean generateFeatures, List<Path> webResourceDirs,
-                    List<ProjectModule> projectModuleList, Map<String, List<String>> parentBuildGradle, File serverOutputDir,
-                    JavaCompilerOptions compilerOptions
+                    List<ProjectModule> projectModuleList, Map<String, List<String>> parentBuildGradle, File serverOutputDir
         ) throws IOException, PluginExecutionException {
             super(buildDir, serverDirectory, sourceDirectory, testSourceDirectory, configDirectory, projectDirectory, /* multi module project directory */ projectDirectory,
                     resourceDirs, changeOnDemandTestsAction, hotTests, skipTests, false /* skipUTs */, false /* skipITs */, skipInstallFeature, artifactId,  serverStartTimeout,
                     verifyAppStartTimeout, appUpdateTimeout, ((long) (compileWait * 1000L)), libertyDebug,
                     true /* useBuildRecompile */, true /* gradle */, pollingTest, container, containerfile, containerBuildContext, containerRunOpts, containerBuildTimeout, skipDefaultPorts,
-                    compilerOptions, keepTempContainerfile, mavenCacheLocation, projectModuleList /* multi module upstream projects */,
+                    null /* compileOptions not needed since useBuildRecompile is true */, keepTempContainerfile, mavenCacheLocation, projectModuleList /* multi module upstream projects */,
                     projectModuleList.size() > 0 /* recompileDependencies as true for multi module */, packagingType, buildFile, parentBuildGradle /* parent build files */, generateFeatures, null /* compileArtifactPaths */, null /* testArtifactPaths */, webResourceDirs /* webResources */
                 );
             this.libertyDirPropertyFiles = LibertyPropFilesUtility.getLibertyDirectoryPropertyFiles(new CommonLogger(project), installDirectory, userDirectory, serverDirectory, serverOutputDir);
@@ -588,13 +587,6 @@ class DevTask extends AbstractFeatureTask {
                 logger.error("Could not parse build.gradle " + e.getMessage());
                 logger.debug('Error parsing build.gradle', e);
                 return false;
-            }
-
-            JavaCompilerOptions oldCompilerOptions = getGradleCompilerOptions(project)
-            JavaCompilerOptions newCompilerOptions = getGradleCompilerOptions(newProject)
-            if (!oldCompilerOptions.getOptions().equals(newCompilerOptions.getOptions())) {
-                logger.debug('Gradle compiler options have been modified: ' + newCompilerOptions.getOptions())
-                util.updateJavaCompilerOptions(newCompilerOptions)
             }
 
             // Detect change in installation configuration that requires restart of dev mode. Throw error.
@@ -1354,8 +1346,7 @@ class DevTask extends AbstractFeatureTask {
                 verifyAppStartTimeout.intValue(), verifyAppStartTimeout.intValue(), compileWait.doubleValue(),
                 libertyDebug.booleanValue(), pollingTest.booleanValue(), container.booleanValue(), containerfile, containerBuildContext, containerRunOpts,
                 containerBuildTimeout, skipDefaultPorts.booleanValue(), keepTempContainerfile.booleanValue(), localMavenRepoForFeatureUtility,
-                DevTaskHelper.getPackagingType(project), buildFile, generateFeatures.booleanValue(), webResourceDirs, projectModules, parentBuildGradle, new File(outputDir, serverName),
-                getGradleCompilerOptions(project)
+                DevTaskHelper.getPackagingType(project), buildFile, generateFeatures.booleanValue(), webResourceDirs, projectModules, parentBuildGradle, new File(outputDir, serverName)
             );
         } catch (IOException | PluginExecutionException e) {
             throw new GradleException("Error initializing dev mode.", e)
