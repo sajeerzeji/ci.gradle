@@ -1714,7 +1714,7 @@ class DevTask extends AbstractFeatureTask {
      * @param project the Gradle project to read compiler options from
      * @return populated JavaCompilerOptions, never null
      */
-    private JavaCompilerOptions getGradleCompilerOptions(Project project) {
+    protected JavaCompilerOptions getGradleCompilerOptions(Project project) {
         JavaCompilerOptions options = new JavaCompilerOptions()
         try {
             def compileTask = project.tasks.findByName('compileJava')
