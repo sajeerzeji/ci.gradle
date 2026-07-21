@@ -1735,10 +1735,9 @@ class DevTask extends AbstractFeatureTask {
             } else {
                 def annotationProcessorConfig = project.configurations.findByName('annotationProcessor')
                 if (annotationProcessorConfig != null) {
-                    Set resolvedArtifacts = annotationProcessorConfig.resolvedConfiguration.resolvedArtifacts
-                    if (!resolvedArtifacts.isEmpty()) {
-                        String pathString = resolvedArtifacts
-                                .collect { it.file.absolutePath }.join(File.pathSeparator)
+                    Set annotationProcessorFiles = annotationProcessorConfig.files
+                    if (!annotationProcessorFiles.isEmpty()) {
+                        String pathString = annotationProcessorFiles.collect { it.absolutePath }.join(File.pathSeparator)
                         options.setAnnotationProcessorPath(pathString)
                         logger.info("Dev mode annotation processor path (annotationProcessor config): " + pathString)
                     }
