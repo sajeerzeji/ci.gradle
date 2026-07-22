@@ -27,8 +27,8 @@ repositories {
 dependencies {
     providedCompile "jakarta.platform:jakarta.jakartaee-api:8.0.0"
 
-    compileOnly "org.projectlombok:lombok:1.18.34"
-    annotationProcessor "org.projectlombok:lombok:1.18.34"
+    compileOnly "org.projectlombok:lombok:1.18.42"
+    annotationProcessor "org.projectlombok:lombok:1.18.42"
 
     libertyRuntime "$runtimeGroup:$runtimeArtifactId:$runtimeVersion"
 

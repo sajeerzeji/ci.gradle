@@ -12,8 +12,8 @@ tasks.withType(JavaCompile).configureEach {
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
 }
 
 configurations {
