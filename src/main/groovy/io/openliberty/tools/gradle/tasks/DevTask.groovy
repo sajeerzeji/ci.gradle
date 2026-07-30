@@ -1727,7 +1727,7 @@ class DevTask extends AbstractFeatureTask {
                     if (!annotationProcessorFiles.isEmpty()) {
                         String pathString = annotationProcessorFiles.collect { it.absolutePath }.join(File.pathSeparator)
                         options.setAnnotationProcessorPath(pathString)
-                        logger.info("Dev mode annotation processor path (compileJava.options): " + pathString)
+                        logger.lifecycle("Dev mode annotation processor path (compileJava.options): " + pathString)
                     }
                 } catch (Exception e) {
                     logger.debug("Could not resolve annotationProcessorPath on compileJava for project '" + project.name + "': " + e.getMessage())
@@ -1739,7 +1739,7 @@ class DevTask extends AbstractFeatureTask {
                     if (!annotationProcessorFiles.isEmpty()) {
                         String pathString = annotationProcessorFiles.collect { it.absolutePath }.join(File.pathSeparator)
                         options.setAnnotationProcessorPath(pathString)
-                        logger.info("Dev mode annotation processor path (annotationProcessor config): " + pathString)
+                        logger.lifecycle("Dev mode annotation processor path (annotationProcessor config): " + pathString)
                     }
                 }
             }

@@ -58,6 +58,9 @@ class DevMultiModuleAnnotationProcessorTest extends BaseDevTest {
 
         assertFalse("getGradleCompilerOptions() must not log a warning for the :jar module",
                 verifyLogMessage(3000, "Could not read compiler options for project 'jar'"))
+
+        assertTrue("getGradleCompilerOptions() must log the annotation processor path for the :jar module",
+                verifyLogMessage(3000, "Dev mode annotation processor path"))
     }
 
     /**
@@ -82,6 +85,30 @@ class DevMultiModuleAnnotationProcessorTest extends BaseDevTest {
 
         assertTrue("Greeting.class should be recompiled after source change even with Lombok annotationProcessor configured",
                 waitForCompilation(targetGreeting, lastModified, 12000))
+    }
+
+    /**
+     * Verify that modifying GreetingServlet.java in the WAR module triggers recompilation when Lombok is configured on the WAR module itself via compileJava.options.annotationProcessorPath.
+     */
+    @Test
+    void modifyJavaFileInWarModuleWithLombokTriggersRecompilation() throws Exception {
+        File srcServlet = new File(buildDir,
+                "war/src/main/java/io/openliberty/guides/multimodules/web/GreetingServlet.java")
+        File targetServlet = new File(buildDir,
+                "war/build/classes/java/main/io/openliberty/guides/multimodules/web/GreetingServlet.class")
+
+        assertTrue("GreetingServlet.java source file must exist", srcServlet.exists())
+        assertTrue("GreetingServlet.class must exist after initial build", targetServlet.exists())
+
+        long lastModified = targetServlet.lastModified()
+        waitLongEnough()
+
+        BufferedWriter javaWriter = new BufferedWriter(new FileWriter(srcServlet, true))
+        javaWriter.append(" // recompile trigger")
+        javaWriter.close()
+
+        assertTrue("GreetingServlet.class should be recompiled after source change with Lombok configured on the WAR module",
+                waitForCompilation(targetServlet, lastModified, 12000))
     }
 
     @AfterClass
