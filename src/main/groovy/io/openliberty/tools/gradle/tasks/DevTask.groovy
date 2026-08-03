@@ -1467,9 +1467,6 @@ class DevTask extends AbstractFeatureTask {
         if (hotTests && testSourceDirectory.exists()) {
             // if hot testing, run tests on startup and then watch for keypresses
             util.runTestThread(false, executor, -1, false, false);
-        } else {
-            // else watch for key presses immediately
-            util.runHotkeyReaderThread(executor);
         }
 
         // Note that serverXMLFile can be null. DevUtil will automatically watch
