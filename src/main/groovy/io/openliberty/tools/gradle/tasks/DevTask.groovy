@@ -17,7 +17,7 @@ package io.openliberty.tools.gradle.tasks
 
 import groovy.xml.XmlParser
 import io.openliberty.tools.ant.ServerTask
-import io.openliberty.tools.common.plugins.util.BinaryScannerUtil
+import io.openliberty.tools.common.plugins.util.FeatureGeneratorUtil
 import io.openliberty.tools.common.plugins.util.DevUtil
 import io.openliberty.tools.common.plugins.util.InstallFeatureUtil
 import io.openliberty.tools.common.plugins.util.JavaCompilerOptions
@@ -710,7 +710,7 @@ class DevTask extends AbstractFeatureTask {
             if (optimizeGenerateFeatures && generateFeatures) {
                 logger.debug("Detected a change in the compile dependencies, regenerating features");
                 // optimize generate features on build dependency change
-                boolean generateFeaturesSuccess = libertyGenerateFeatures(null, true);
+                boolean generateFeaturesSuccess = libertyGenerateFeatures(null, true, false, false, false);
                 if (generateFeaturesSuccess) {
                     util.javaSourceClassPaths.clear();
                 } else {
@@ -1058,17 +1058,22 @@ class DevTask extends AbstractFeatureTask {
         }
 
         @Override
-        public boolean libertyGenerateFeatures(Collection<String> classes, boolean optimize) {
+        public boolean libertyGenerateFeatures(Collection<String> classes, boolean optimize, boolean genToSrc, boolean useTmpDirOut, boolean useTmpDirIn) {
             ProjectConnection gradleConnection = initGradleProjectConnection();
             BuildLauncher gradleBuildLauncher = gradleConnection.newBuild();
 
             try {
                 List<String> options = new ArrayList<String>();
-                classes.each {
-                    // generate features for only the classFiles passed (if any)
-                    options.add("--classFile=" + it);
+                if (classes != null) {
+                    classes.each {
+                        // generate features for only the classFiles passed (if any)
+                        options.add("--classFile=" + it);
+                    }
                 }
                 options.add("--optimize=" + optimize);
+                options.add("--generateToSrc=" + genToSrc);
+                options.add("--useTmpDirOut=" + useTmpDirOut);
+                options.add("--useTmpDirIn=" + useTmpDirIn);
                 runGenerateFeaturesTask(gradleBuildLauncher, options);
                 return true; // successfully generated features
             } catch (BuildException e) {
@@ -1374,10 +1379,10 @@ class DevTask extends AbstractFeatureTask {
                 String generatedFileCanonicalPath;
                 try {
                     generatedFileCanonicalPath = new File(configDirectory,
-                            BinaryScannerUtil.GENERATED_FEATURES_FILE_PATH).getCanonicalPath();
+                            FeatureGeneratorUtil.GENERATED_FEATURES_FILE_PATH).getCanonicalPath();
                 } catch (IOException e) {
                     generatedFileCanonicalPath = new File(configDirectory,
-                            BinaryScannerUtil.GENERATED_FEATURES_FILE_PATH).toString();
+                            FeatureGeneratorUtil.GENERATED_FEATURES_FILE_PATH).toString();
                 }
                 logger.warn(
                         "The source configuration directory will be modified. Features will automatically be generated in a new file: "
