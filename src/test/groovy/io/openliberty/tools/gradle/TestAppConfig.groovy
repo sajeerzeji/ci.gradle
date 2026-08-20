@@ -28,11 +28,11 @@ public class TestAppConfig extends AbstractIntegrationTest{
             BuildResult result = runTasksResult(buildDir, 'libertyStart')
             String output = result.getOutput()
             if (OSUtil.isWindows()) {
-                assert output.contains('Resolved environment variable "EXP_VAR" in path "!EXP_VAR!_!EXP_VAR3!" to "TEST_WINDOWS"'): 'Expected info about expansion variable resolution for !EXP_VAR!_!EXP_VAR3!'
-                assert output.contains('Resolved environment variable "EXP_VAR3" in path "!EXP_VAR!_!EXP_VAR3!" to "TEST_WINDOWS"'): 'Expected info about expansion variable resolution for TEST_!EXP_VAR3!'
+                assert output.contains('Resolved environment variable "EXP_VAR" in path "!EXP_VAR!_!EXP_VAR3!" to "TEST"'): 'Expected info about expansion variable resolution for !EXP_VAR!_!EXP_VAR3!'
+                assert output.contains('Resolved environment variable "EXP_VAR3" in path "!EXP_VAR!_!EXP_VAR3!" to "WINDOWS"'): 'Expected info about expansion variable resolution for TEST_!EXP_VAR3!'
             } else {
-                assert output.contains('Resolved environment variable "EXP_VAR" in path "${EXP_VAR}_${EXP_VAR2}" to "TEST_UNIX"'): 'Expected info about expansion variable resolution for ${EXP_VAR}_${EXP_VAR2}'
-                assert output.contains('Resolved environment variable "EXP_VAR2" in path "${EXP_VAR}_${EXP_VAR2}" to "TEST_UNIX"'): 'Expected info about expansion variable resolution for TEST_${EXP_VAR2}'
+                assert output.contains('Resolved environment variable "EXP_VAR" in path "${EXP_VAR}_${EXP_VAR2}" to "TEST"'): 'Expected info about expansion variable resolution for ${EXP_VAR}_${EXP_VAR2}'
+                assert output.contains('Resolved environment variable "EXP_VAR2" in path "${EXP_VAR}_${EXP_VAR2}" to "UNIX"'): 'Expected info about expansion variable resolution for TEST_${EXP_VAR2}'
             }
         } catch (Exception e) {
             throw new AssertionError("Fail on task libertyStart.", e)
