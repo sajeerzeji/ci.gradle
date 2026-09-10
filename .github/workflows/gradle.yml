@@ -39,8 +39,8 @@ jobs:
     - name: Checkout ci.common
       uses: actions/checkout@v3
       with:
-        repository: OpenLiberty/ci.common
-        ref: 1.x
+        repository: sajeerzeji/ci.common
+        ref: fix/GH541-devc_port_resolution
         path: ci.common
     - name: Checkout ci.ant
       uses: actions/checkout@v3
@@ -122,7 +122,7 @@ jobs:
     - name: Clone ci.ant, ci.common, ci.gradle repos to C drive
       run: |
         echo ${{github.workspace}}
-        git clone --branch 1.x --single-branch https://github.com/OpenLiberty/ci.common.git ${{github.workspace}}/ci.common
+        git clone https://github.com/sajeerzeji/ci.common.git --branch fix/GH541-devc_port_resolution --single-branch ${{github.workspace}}/ci.common
         git clone https://github.com/OpenLiberty/ci.ant.git ${{github.workspace}}/ci.ant
     # Cache mvn/gradle packages
     - name: Cache Maven packages
